@@ -5,13 +5,34 @@
 * python >= 3.6
 * ansible >= 2.10
 * ansible-solace >= 0.6.1
+* docker (e.g. Docker Desktop)
 
+### Example Installations: Mac
+
+TODO
 
 ## Install
 
 ````bash
 # install / upgrade to latest version of ansible-solace
 pip3 install --upgrade ansible-solace
+````
+
+## Documentation
+
+List all `ansible-solace` modules:
+````bash
+ansible-doc -l | grep solace
+````
+
+Module documentation:
+
+````bash
+
+ansible-doc <module_name>
+# e.g.
+ansible-doc solace_queue
+
 ````
 
 ## Configure Environment
