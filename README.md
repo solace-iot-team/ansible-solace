@@ -1,5 +1,14 @@
 # Sample Projects using `ansible-solace`
 
+Sample projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/) using Ansible via REST [SEMP v2](https://docs.solace.com/SEMP/Using-SEMP.htm) (and SEMP v1 if required).
+
+#### Links
+
+[Report Issues here](https://github.com/solace-iot-team/ansible-solace-samples/issues).
+
+[Guide to Creating your own Project](./project-template).
+
+
 ## Pre-requisites
 
 * python >= 3.6
@@ -7,7 +16,7 @@
 * ansible-solace >= 0.6.1
 * docker (e.g. Docker Desktop)
 
-### Example Installations: Mac
+#### Example Installations: Mac
 
 Sequence:
 - Homebrew
@@ -33,7 +42,7 @@ ansible --version
 ansible-playbook --version
 ````
 
-## Install
+## Install `ansible-solace`
 
 ````bash
 # install / upgrade to latest version of ansible-solace
@@ -91,10 +100,6 @@ cd {project}
 
 ls ./tmp/*.log
 ````
-
-## Create Your Own Project
-
-[See directory `project-template`](./project-template).
 
 ---
 The End.
