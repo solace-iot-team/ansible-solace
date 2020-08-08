@@ -9,13 +9,37 @@
 
 ### Example Installations: Mac
 
-TODO
+Sequence:
+- Homebrew
+- Python
+- Ansible
+
+````bash
+# Homebrew
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew help
+
+# Python
+brew install python
+brew info python
+brew update && brew upgrade python
+
+python3 -V
+pip3 -V
+
+# Ansible
+pip3 install --upgrade ansible
+ansible --version
+ansible-playbook --version
+````
 
 ## Install
 
 ````bash
 # install / upgrade to latest version of ansible-solace
 pip3 install --upgrade ansible-solace
+
+pip3 show ansible-solace
 ````
 
 ## Documentation
