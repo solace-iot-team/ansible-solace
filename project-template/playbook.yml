@@ -1,0 +1,103 @@
+
+# ---------------------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------------------------------
+
+-
+    name: "Project Template"
+    hosts: "{{ brokers }}"
+    gather_facts: no
+    any_errors_fatal: true
+    module_defaults:
+      solace_get_available:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+      solace_gather_facts:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+        solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+        solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+
+
+    tasks:
+      - name: "Pause Until Broker/Service available"
+        solace_get_available:
+        register: _result
+        until: "_result.rc == 0 and _result.is_available == True"
+        retries: 25 # 25 * 5 seconds
+        delay: 5 # Every 5 seconds
+
+      - name: Gather Solace Facts
+        solace_gather_facts:
+
+      - name: "Save hostvars to ./tmp/hostvars.json"
+        local_action:
+          module: copy
+          content: "{{ hostvars | to_nice_json }}"
+          dest: ./tmp/hostvars.json
+
+      - name: Show ansible_facts.solace
+        debug:
+          msg:
+            - "ansible_facts.solace:"
+            - "{{ ansible_facts.solace }}"
+
+      - name: Show Broker Server
+        debug:
+          msg: "server={{ ansible_facts.solace.Server }}"
+
+      - name: Show Broker SEMP API Version
+        debug:
+          msg: "api version={{ ansible_facts.solace.about.api.sempVersion }}"
+
+      - name: Show Broker Message VPNs
+        debug:
+          msg: "msg vpns={{ ansible_facts.solace.about.user.msgVpns }}"
+
+      - name: "Get Broker SMF Messaging Endpoints Facts"
+        solace_get_facts:
+          hostvars: "{{ hostvars }}"
+          host: "{{ inventory_hostname }}"
+          fields:
+          field_funcs:
+            - get_serviceSMFMessagingEndpoints
+            - get_virtualRouterName
+        register: broker_facts
+
+      - name: "Show Broker Facts"
+        debug:
+          msg:
+            - "broker_facts:"
+            - "{{ broker_facts }}"
+
+
+###
+# The End.
