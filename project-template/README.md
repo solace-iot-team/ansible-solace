@@ -2,7 +2,7 @@
 
 Use this template to create your own project.
 
-## Run
+## Run this project
 
 ````bash
 
@@ -13,20 +13,28 @@ Use this template to create your own project.
 ## Create your own Project
 
 ````bash
-
 cd ..
 
-cp -r ./project-template ./{new-project-name}
+# note: copy recursively with preserving sym-links
+cp -av ./project-template ./{new-project-name}
 
 cd {new-project-name}
 
 ````
 
-### Configure
+### Set-up your Project
 
-- inventory
-- playbook
-- ...
+* Broker Inventory: `broker.inventory.yml`
+* Playbook: `playbook.yml`
+* README: `README.md`
+* ...
+
+### Run your Project
+
+````bash
+./run.sh
+````
+
 
 ---
 The End.

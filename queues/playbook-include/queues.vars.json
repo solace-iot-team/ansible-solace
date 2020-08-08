@@ -1,0 +1,36 @@
+{
+  "queues": [
+    {
+      "name": "ansible-solace/queues/__1__/topic/subscription/__xx__",
+      "subscriptions": [
+        "ansible-solace-samples/queues/__1__/topic/subscription/1/>",
+        "ansible-solace-samples/queues/__1__/topic/subscription/2/>",
+        "ansible-solace-samples/queues/__1__/topic/subscription/3/>"
+        ]
+    },
+    {
+      "name": "ansible-solace-samples/queues/__2__/topic/subscription/__xx__",
+      "subscriptions": [
+        "ansible-solace-samples/queues/__2__/topic/subscription/1/>",
+        "ansible-solace-samples/queues/__2__/topic/subscription/2/>",
+        "ansible-solace-samples/queues/__2__/topic/subscription/3/>"
+        ]
+    },
+    {
+      "name": "ansible-solace-samples/queues/__3__/topic/subscription/__xx__",
+      "subscriptions": [
+        "ansible-solace-samples/queues/__3__/topic/subscription/1/>",
+        "ansible-solace-samples/queues/__3__/topic/subscription/2/>",
+        "ansible-solace-samples/queues/__3__/topic/subscription/3/>"
+        ]
+    },
+    {
+      "name": "ansible-solace-samples/queues/__4__/topic/subscription/__xx__",
+      "subscriptions": [
+        "ansible-solace-samples/queues/__4__/topic/subscription/1/>",
+        "ansible-solace-samples/queues/__4__/topic/subscription/2/>",
+        "ansible-solace-samples/queues/__4__/topic/subscription/3/>"
+        ]
+    }
+  ]
+}

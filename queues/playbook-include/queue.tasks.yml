@@ -1,0 +1,41 @@
+# Tasks to add/update a queue
+# include & use to loop over tasks
+---
+    # - debug:
+    #     msg:
+    #       - "Adding queue:"
+    #       - "queue number: {{ queueNumber }}"
+    #       - "config: {{ item }}"
+
+    - name: Create Queue
+      solace_queue:
+        name: "{{ queue_item.name }}"
+        settings:
+          egressEnabled: false
+          ingressEnabled: false
+        state: present
+
+    - name: Update queue
+      solace_queue:
+        name: "{{ queue_item.name }}"
+        settings:
+          permission: "consume"
+        state: present
+
+    - name: Add / Update all subscriptions
+      solace_queue_subscription:
+        queue: "{{ queue_item.name }}"
+        name: "{{ item }}"
+        state: present
+      loop: "{{ queue_item.subscriptions }}"
+
+    - name: Enable Egress of Queue
+      solace_queue:
+        name: "{{ queue_item.name }}"
+        settings:
+          egressEnabled: true
+          ingressEnabled: true
+        state: present
+
+###
+# The End.
