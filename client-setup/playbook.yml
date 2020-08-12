@@ -1,0 +1,173 @@
+
+# ---------------------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------------------------------
+
+-
+    name: "Client Setup Example"
+    hosts: "{{ brokers }}"
+    gather_facts: no
+    any_errors_fatal: true
+    module_defaults:
+      solace_get_available:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+      solace_gather_facts:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+        solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+        solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+      solace_acl_profile:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+      solace_acl_publish_topic_exception:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+      solace_acl_subscribe_topic_exception:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+      solace_client_username:
+        host: "{{ sempv2_host }}"
+        port: "{{ sempv2_port }}"
+        secure_connection: "{{ sempv2_is_secure_connection }}"
+        username: "{{ sempv2_username }}"
+        password: "{{ sempv2_password }}"
+        timeout: "{{ sempv2_timeout }}"
+    tasks:
+      - name: "Pause Until Broker/Service available"
+        solace_get_available:
+        register: _result
+        until: "_result.rc == 0 and _result.is_available == True"
+        retries: 25 # 25 * 5 seconds
+        delay: 5 # Every 5 seconds
+
+      - name: Gather Solace Facts
+        solace_gather_facts:
+
+      - name: Remove Client Usernames before removing the ACL Profile
+        solace_client_username:
+          name: "{{ item.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          state: absent
+        loop: "{{ users | default([]) }} "
+
+      - name: Remove ACL Profile
+        solace_acl_profile:
+          name: "{{ item.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          state: absent
+        loop: "{{ acls | default([]) }} "
+
+      - name: Add ACL Profile
+        solace_acl_profile:
+          name: "{{ item.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          settings:
+            clientConnectDefaultAction: "{{ item.client_connect_default }}"
+        loop: "{{ acls | default([]) }} "
+
+      - name: Remove ACL Publish Exception
+        solace_acl_publish_topic_exception:
+          name: "{{ item.1.topic }}"
+          acl_profile_name: "{{ item.0.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          state: absent
+          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+        with_subelements: 
+          - "{{ acls | default([]) }} "
+          - publish_topic_exceptions
+          - flags:
+            skip_missing: true
+
+      - name: Add ACL Publish Exception
+        solace_acl_publish_topic_exception:
+          name: "{{ item.1.topic }}"
+          acl_profile_name: "{{ item.0.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          topic_syntax: "{{ item.1.syntax }}"
+          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+        with_subelements: 
+          - "{{ acls | default([]) }} "
+          - publish_topic_exceptions
+          - flags:
+            skip_missing: true
+
+      - name: Remove ACL Subscribe Exception
+        solace_acl_subscribe_topic_exception:
+          name: "{{ item.1.topic }}"
+          acl_profile_name: "{{ item.0.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          state: absent
+          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+        with_subelements: 
+          - "{{ acls | default([]) }} "
+          - subscribe_topic_exceptions
+          - flags:
+            skip_missing: true
+
+      - name: Add ACL Subscribe Exception
+        solace_acl_subscribe_topic_exception:
+          name: "{{ item.1.topic }}"
+          acl_profile_name: "{{ item.0.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          topic_syntax: "{{ item.1.syntax }}"
+          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+        with_subelements: 
+          - "{{ acls | default([]) }} "
+          - subscribe_topic_exceptions
+          - flags:
+            skip_missing: true
+
+      - name: Add Client
+        solace_client_username:
+          name: "{{ item.name }}"
+          msg_vpn: "{{ msg_vpn }}"
+          settings:
+            clientProfileName: "{{ item.client_profile }}"
+            aclProfileName: "{{ item.acl_profile }}"
+            password: "{{ item.password }}"
+            enabled: "{{ item.enabled }}"
+        loop: "{{ users | default([]) }} "
+
+###
+# The End.
