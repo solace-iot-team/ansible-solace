@@ -1,13 +1,14 @@
-# Sample Projects using `ansible-solace`
+# Tutorials & Sample Projects Using `ansible-solace`
 
-Sample projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/) using Ansible via REST [SEMP v2](https://docs.solace.com/SEMP/Using-SEMP.htm) (and SEMP v1 if required).
+Sample tutorials and projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/) using Ansible via REST [SEMP v2](https://docs.solace.com/SEMP/Using-SEMP.htm) (and SEMP v1 if required).
 
 #### Links
 
-[Report Issues here](https://github.com/solace-iot-team/ansible-solace-samples/issues).
+[Concepts of `ansible-solace`](./Concepts.md).
 
 [Guide to Creating your own Project](./project-template).
 
+[Report Issues here](https://github.com/solace-iot-team/ansible-solace/issues).
 
 ## Pre-requisites
 
@@ -84,22 +85,20 @@ export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
 export ANSIBLE_SOLACE_ENABLE_LOGGING=True
 ````
 
-## Run the Sample Projects
+## Tutorials & Sample Projects
 
-The projects use Solace PubSub+ Standard - the free version - and pull it from docker hub.
+Tutorials are examples to show the use of a particular module or set of modules.
+They typically follow the naming convention:`working-with-{tutorial-name}`
 
+Projects are more complex examples usually derived from real-life use cases / projects and
+implement one or more specific, repeatable patterns.
 
-````bash
-cd {project}
+Most of the tutorials use Solace PubSub+ Standard - the free version - and pull it from docker hub.
 
-./start.local.broker.sh
+Some of the projects / use case examples are more complex and require a Solace Cloud account in addition to run fully.
 
-./run.sh
+Refer to the README in the project / tutorial for details.
 
-./stop.local.broker.sh
-
-ls ./tmp/*.log
-````
 
 ---
 The End.
