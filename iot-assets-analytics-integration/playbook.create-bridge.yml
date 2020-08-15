@@ -1,0 +1,345 @@
+
+# ---------------------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------------------------------
+
+-
+  name: "Create Bridge: Edge to Central"
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_client_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_acl_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_client_username:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_queue:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_queue_subscription:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_bridge:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_bridge_remote_vpn:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_get_bridges:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_get_bridge_remote_vpns:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+
+  tasks:
+
+    # DEBUG
+    # - meta: end_play
+
+    - include_vars:
+        file: "./lib/vars.bridge.yml"
+        name: bridge
+
+    - name: "Gather Solace Facts"
+      solace_gather_facts:
+      no_log: true
+
+    # TODO:
+    # - setup secure bridge
+    # - name: Add Trusted Common Name to Bridge
+    #     solace_bridge_tls_cn:
+
+
+    # TODO:
+    # workaround for Solace Cloud Update Profile:
+    # delete it first, then re-create it
+    # requires any existing client usernames to be disabled first
+    # on list to fix in module
+    - name: "Bridge: Disable Client Username"
+      solace_client_username:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: false
+        state: present
+      when: solace_cloud_api_token is defined
+
+    - name: "Bridge: WORKAROUND SOLACE-CLOUD: DELETE Client Profile"
+      solace_client_profile:
+        name: "{{ bridge.short_name }}"
+        state: absent
+      when: solace_cloud_api_token is defined
+
+    # TODO:
+    # probably requires different setup for central & edge broker
+    - name: "Bridge: Client Profile"
+      solace_client_profile:
+        name: "{{ bridge.short_name }}"
+        settings:
+          allowBridgeConnectionsEnabled: true
+          # TODO: figure out the correct settings for most restrictive setup
+          allowGuaranteedMsgSendEnabled: true
+          allowGuaranteedMsgReceiveEnabled: true
+          # tlsAllowDowngradeToPlainTextEnabled: false
+          maxEndpointCountPerClientUsername: 1
+        state: present
+
+    - name: "Bridge: ACL Profile"
+      solace_acl_profile:
+        name: "{{ bridge.short_name }}"
+        settings:
+          # TODO: figure out the correct settings for most restrictive setup
+          clientConnectDefaultAction: "allow"
+          publishTopicDefaultAction: "allow"
+          subscribeTopicDefaultAction: "allow"
+        state: present
+
+    # Note: If it exists already, API does not allow to update certain
+    #       settings. It must be disabled first.
+    # on list to fix
+    - name: "Bridge: Disable Client Username"
+      solace_client_username:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: false
+        state: present
+
+    - name: "Bridge: Client Username"
+      solace_client_username:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: true
+          password: "{{ bridge.name }}"
+          aclProfileName: "{{ bridge.short_name }}"
+          clientProfileName: "{{ bridge.short_name }}"
+        state: present
+
+    - name: "Bridge: Queue"
+      solace_queue:
+        name: "{{ bridge.name }}"
+        settings:
+          owner: "{{ bridge.name }}"
+          permission: consume
+          egressEnabled: true
+          ingressEnabled: true
+        state: present
+
+    - name: "Bridge: Queue Subscription"
+      solace_queue_subscription:
+        queue_name: "{{ bridge.name }}"
+        topic: "{{ bridge.subscr_topic }}"
+        state: present
+
+    # Note:
+    # A previously created bridge to the local broker (central-broker)
+    # will have the remote vpn with that local broker's virtual router.
+    # When re-starting the local broker, the virtual router changes.
+    # Adding the new remote vpn will result in a 'hanging' remote vpn.
+    # ==> ensure here that bridge is set-up completely clean
+    - name: "Bridge: Ensure Bridge does not exist"
+      solace_bridge:
+        name: "{{ bridge.name }}"
+        state: absent
+
+    - name: "Bridge: Bridge"
+      solace_bridge:
+        name: "{{ bridge.name }}"
+        virtual_router: auto
+        settings:
+          enabled: false
+          remoteAuthenticationBasicClientUsername: "{{ bridge.name }}"
+          remoteAuthenticationBasicPassword: "{{ bridge.name }}"
+          remoteAuthenticationScheme: basic
+        state: present
+
+    # # DEBUG
+    # - name: "Bridge: Debug: save hostvars to file"
+    #   local_action:
+    #     module: copy
+    #     content: "{{ hostvars | to_nice_json }}"
+    #     dest: "./tmp/hostvars.json"
+    #   changed_when: false
+    #
+
+    - name: "Bridge: Get Remote Host Bridge Facts"
+      solace_get_facts:
+        hostvars: "{{ hostvars }}"
+        host: "{{ bridge.hosts[inventory_hostname].remote_host }}"
+        fields:
+        field_funcs:
+          - get_bridge_remoteMsgVpnLocations
+      register: bridge_remote_msg_vpn_locations
+
+    - name: "Bridge: Save Bridge Remote VPN Locations Facts to File"
+      local_action:
+        module: copy
+        content: "{{ bridge_remote_msg_vpn_locations.facts | to_nice_json }}"
+        dest: "./tmp/facts.{{ inventory_hostname }}.bridge-remote-vpn-locations.json"
+      changed_when: false
+
+    - name: "Bridge: Remote Message VPN"
+      solace_bridge_remote_vpn:
+        bridge_name: "{{ bridge.name }}"
+        bridge_virtual_router: auto
+        remote_msg_vpn_name: "{{ bridge.hosts[inventory_hostname].remote_vpn }}"
+        # choose the correct remote location depending on settings.tlsEnabled and settings.compressedDataEnabled
+        remote_vpn_location: "{{ bridge_remote_msg_vpn_locations.facts.bridge_remoteMsgVpnLocations.plain }}"
+        settings:
+          enabled: true
+          tlsEnabled: false
+          compressedDataEnabled: false
+          queueBinding: "{{ bridge.name }}"
+        state: present
+
+    - name: "Bridge: Enable"
+      solace_bridge:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: true
+        state: present
+
+    - name: "Bridge: Get Status Remote VPN"
+      solace_get_bridge_remote_vpns:
+        bridge_name: "{{ bridge.name }}"
+        api: monitor
+        query_params:
+          where:
+          select:
+            - bridgeName
+            - remoteMsgVpnLocation
+            - enabled
+            - up
+            - lastConnectionFailureReason
+            - compressedDataEnabled
+            - tlsEnabled
+      register: bridge_remote_vpn_monitor_list
+      # it takes a bit of time to establish the connection
+      # don't fail immediately
+      until:
+        - bridge_remote_vpn_monitor_list.result_list[0].up
+      retries: 3
+      delay: 2
+      ignore_errors: yes
+      no_log: true
+
+    - name: "Bridge: Assert Remote VPN Up"
+      fail:
+        msg:
+          - "ERROR: Bridge Remote VPN not up."
+          - "remote vpn info:"
+          - "{{ bridge_remote_vpn_monitor_list.result_list[0] }}"
+      when: bridge_remote_vpn_monitor_list.result_list[0].up == false
+
+    - name: "Bridge: Check & Retry is UP"
+      solace_get_bridges:
+        api: monitor
+        query_params:
+          where:
+            - "bridgeName=={{ bridge.name }}"
+          select:
+            - inboundState
+            - inboundFailureReason
+            - outboundState
+      register: result
+      until:
+        - result.result_list[0].inboundState == 'ready-in-sync'
+        - result.result_list[0].outboundState == 'ready'
+      retries: 3
+      delay: 2
+      ignore_errors: yes
+
+    - name: "Bridge: Assert Bridge Up"
+      fail:
+        msg:
+          - "ERROR: bridge not up."
+          - "inboundState: {{ result.result_list[0].inboundState }}"
+          - "inboundFailureReason: {{ result.result_list[0].inboundFailureReason | default('') }}"
+          - "outboundState: {{ result.result_list[0].outboundState | default('') }}"
+      when: >
+        result.result_list[0].inboundState != 'ready-in-sync' or
+        result.result_list[0].outboundState != 'ready'
+
+
+###
+# The End.

@@ -1,0 +1,102 @@
+
+# ---------------------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------------------------------
+
+-
+  name: "Create Solace Cloud Service"
+  hosts: "{{ SOLACE_CLOUD_ACCOUNTS }}"
+  gather_facts: no
+  any_errors_fatal: true
+
+  tasks:
+
+    - include_vars:
+        file: "./lib/vars.sc-service.yml"
+        name: sc_service
+
+    # serviceTypeId: developer=single, enterprise=HA
+    # serviceTypeId = developer -> serviceClassId = developer
+    # serviceTypeId = enterprise -> serviceClassId = enterprise-250-nano, enterprise-kilo, enterprise-mega, enterprise-giga, enterprise-tera, enterprise-100k-tera
+    - name: "Create Solace Cloud Service"
+      solace_cloud_service:
+        api_token: "{{ api_token }}"
+        name: "{{ sc_service.name }}"
+        settings:
+          msgVpnName: "{{ sc_service.msgVpnName}}"
+          datacenterId: "{{ sc_service.datacenterId }}"
+          serviceTypeId: "{{ sc_service.serviceTypeId}}"
+          serviceClassId: "{{ sc_service.serviceClassId }}"
+          attributes:
+            customizedMessagingPorts:
+              serviceSmfPlainTextListenPort: 55555
+              serviceSmfCompressedListenPort: 55003
+              serviceSmfTlsListenPort: 55443
+        state: present
+      register: result
+
+    - set_fact:
+        sc_service_created_interim_info: "{{ result.response }}"
+        sc_service_created_id: "{{ result.response.serviceId }}"
+
+    - name: "Print Solace Cloud Service: service id"
+      debug:
+        msg: "service_id = {{ sc_service_created_id }}"
+
+    - name: "Wait for Service Provisioning to Complete"
+      solace_cloud_get_service:
+        api_token: "{{ api_token }}"
+        service_id: "{{ sc_service_created_id }}"
+      register: get_service_result
+      until: "get_service_result.rc != 0 or get_service_result.response.creationState == 'completed'"
+      # wait max for 40 * 30 seconds, then give up
+      retries: 40
+      delay: 30 # Every 30 seconds
+
+    - set_fact:
+        sc_service_created_info: "{{ get_service_result.response }}"
+
+    - name: "Save New Solace Cloud Service Facts to File"
+      local_action:
+        module: copy
+        content: "{{ sc_service_created_info | to_nice_json }}"
+        dest: "./tmp/facts.solace_cloud_service.{{ sc_service.name }}.json"
+      changed_when: false
+
+    - name: "Get Host Inventory"
+      solace_cloud_get_facts:
+        from_dict: "{{ sc_service_created_info }}"
+        get_formattedHostInventory:
+          host_entry: edge-broker
+          api_token: "{{ api_token }}"
+      register: inv_results
+
+    - name: "Save Solace Cloud Service inventory to File"
+      local_action:
+        module: copy
+        content: "{{ inv_results.facts.formattedHostInventory | to_nice_json }}"
+        dest: "./tmp/generated/inventory.edge-broker.json"
+      changed_when: false
+
+###
+# The End.
