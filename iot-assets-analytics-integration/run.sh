@@ -23,58 +23,57 @@
 # SOFTWARE.
 # ---------------------------------------------------------------------------------------------
 
+
 clear
 echo; echo "##############################################################################################################"
 echo
+echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
 source ./.lib/run.project-env.sh
-
-
-echo  "TODO runscripts ... all of them"
-exit 1
 
 ##############################################################################################################################
 # Settings
 
-    # logging & debug: ansible
-    ansibleLogFile="./tmp/ansible.log"
-    export ANSIBLE_LOG_PATH="$ansibleLogFile"
-    export ANSIBLE_DEBUG=False
-    # logging: ansible-solace
-    export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
-    export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-    # select inventory
-    export AS_SAMPLES_BROKER_INVENTORY=$(assertFile "broker.inventory.yml") || exit
-    # select broker(s) inside inventory
-    export AS_SAMPLES_BROKERS="all"
-  # END SELECT
+  #   # logging & debug: ansible
+  #   ansibleLogFile="./tmp/ansible.log"
+  #   export ANSIBLE_LOG_PATH="$ansibleLogFile"
+  #   export ANSIBLE_DEBUG=False
+  #   # logging: ansible-solace
+  #   export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
+  #   export ANSIBLE_SOLACE_ENABLE_LOGGING=True
+  #   # select inventory
+  #   export AS_SAMPLES_BROKER_INVENTORY=$(assertFile "broker.inventory.yml") || exit
+  #   # select broker(s) inside inventory
+  #   export AS_SAMPLES_BROKERS="all"
+  # # END SELECT
 
 
 x=$(showEnv)
 x=$(wait4Key)
 ##############################################################################################################################
 # Prepare
-
-mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.log
-rm -f ./tmp/*hostvars*.json
-
+rm ./tmp/*
 ##############################################################################################################################
 # Run
 
-playbook="./playbook.yml"
+runScripts=(
+  "./run.create-sc-service.sh"
+  "./run.create-bridge.sh"
+  "./run.create-rdp-central-broker.sh"
+  "./run.remove-rdp-central-broker.sh"
+  "./run.remove-bridge.sh"
+  "./run.remove-sc-service.sh"
+)
 
-# --step --check -vvv
-ansible-playbook -i $AS_SAMPLES_BROKER_INVENTORY \
-                  $playbook \
-                  --extra-vars "brokers=$AS_SAMPLES_BROKERS" \
-                  -vvv
+for runScript in ${runScripts[@]}; do
 
-echo
-echo "log files:"
-ls -la ./tmp/*.log
-echo; echo
+  echo; echo "##############################################################################################################"
+  echo "# calling: $runScript"
 
+  $runScript
 
+  if [[ $? != 0 ]]; then echo ">>> ERR:$runScript. aborting."; echo; exit 1; fi
+
+done
 ###
 # The End.

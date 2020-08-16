@@ -17,8 +17,14 @@ o	solace_client_username maps to https://docs.solace.com/API-Developer-Online-Re
 o	solace_queue maps to https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/config/index.html#/queue
 o	and so on.
 
-settings are not documented, use the corresponding SEMP V2 API description
-
+TODO:
+- settings are not documented, use the corresponding SEMP V2 API description
+- facts - how to work with them
+  - solace cloud:
+    - create service - inventory, connection params, etc.
+  - broker:
+    - connection params
+  - semp version
 
 ## Using the API Version in Playbooks
 

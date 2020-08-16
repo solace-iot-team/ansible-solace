@@ -136,7 +136,6 @@
 
     # Note: If it exists already, API does not allow to update certain
     #       settings. It must be disabled first.
-    # on list to fix
     - name: "RDP: Disable Client Username"
       solace_client_username:
         name: "{{ rdp.name }}"

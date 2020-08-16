@@ -63,6 +63,7 @@
       debug:
         msg: "service_id = {{ sc_service_created_id }}"
 
+
     - name: "Wait for Service Provisioning to Complete"
       solace_cloud_get_service:
         api_token: "{{ api_token }}"
@@ -72,6 +73,7 @@
       # wait max for 40 * 30 seconds, then give up
       retries: 40
       delay: 30 # Every 30 seconds
+      no_log: true
 
     - set_fact:
         sc_service_created_info: "{{ get_service_result.response }}"

@@ -131,26 +131,6 @@
     # - name: Add Trusted Common Name to Bridge
     #     solace_bridge_tls_cn:
 
-
-    # TODO:
-    # workaround for Solace Cloud Update Profile:
-    # delete it first, then re-create it
-    # requires any existing client usernames to be disabled first
-    # on list to fix in module
-    - name: "Bridge: Disable Client Username"
-      solace_client_username:
-        name: "{{ bridge.name }}"
-        settings:
-          enabled: false
-        state: present
-      when: solace_cloud_api_token is defined
-
-    - name: "Bridge: WORKAROUND SOLACE-CLOUD: DELETE Client Profile"
-      solace_client_profile:
-        name: "{{ bridge.short_name }}"
-        state: absent
-      when: solace_cloud_api_token is defined
-
     # TODO:
     # probably requires different setup for central & edge broker
     - name: "Bridge: Client Profile"
@@ -177,7 +157,6 @@
 
     # Note: If it exists already, API does not allow to update certain
     #       settings. It must be disabled first.
-    # on list to fix
     - name: "Bridge: Disable Client Username"
       solace_client_username:
         name: "{{ bridge.name }}"
@@ -216,7 +195,7 @@
     # will have the remote vpn with that local broker's virtual router.
     # When re-starting the local broker, the virtual router changes.
     # Adding the new remote vpn will result in a 'hanging' remote vpn.
-    # ==> ensure here that bridge is set-up completely clean
+    # Deleting the bridge first ensures that bridge is set-up completely clean.
     - name: "Bridge: Ensure Bridge does not exist"
       solace_bridge:
         name: "{{ bridge.name }}"

@@ -26,6 +26,7 @@
 clear
 echo; echo "##############################################################################################################"
 echo
+echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
 source ./.lib/run.project-env.sh
 
