@@ -56,6 +56,22 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
+    solace_acl_publish_topic_exception:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_acl_subscribe_topic_exception:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
     solace_client_username:
       host: "{{ sempv2_host }}"
       port: "{{ sempv2_port }}"
@@ -88,19 +104,33 @@
     # DEBUG
     # - meta: end_play
 
+    - name: Get Solace Facts
+      solace_gather_facts:
+
     - include_vars:
         file: "./lib/vars.mqtt.yml"
         name: mqtt
+
+    - name: "MQTT: Disable Client Username - all clients are disconnected"
+      solace_client_username:
+        name: "{{ mqtt.name }}"
+        settings:
+          enabled: false
+        state: present
 
     - name: "MQTT: Client Profile"
       solace_client_profile:
         name: "{{ mqtt.name }}"
         settings:
-          # TODO: figure out the correct settings for most restrictive setup
           allowBridgeConnectionsEnabled: false
           allowGuaranteedMsgSendEnabled: true
           allowGuaranteedMsgReceiveEnabled: true
-          maxEndpointCountPerClientUsername: 10
+          maxConnectionCountPerClientUsername: 10
+          # allowGuaranteedEndpointCreateEnabled: false
+          # serviceSmfMaxConnectionCountPerClientUsername: 0
+          # serviceWebMaxConnectionCountPerClientUsername: 0
+          # maxEndpointCountPerClientUsername: 10
+          # maxTransactedSessionCount: 0
         state: present
 
     - name: "MQTT: ACL Profile"
@@ -109,44 +139,51 @@
         settings:
           # TODO: figure out the correct settings for most restrictive setup
           clientConnectDefaultAction: "allow"
-          publishTopicDefaultAction: "allow"
-          subscribeTopicDefaultAction: "allow"
+          publishTopicDefaultAction: "disallow"
+          subscribeTopicDefaultAction: "disallow"
         state: present
 
-# TODO:
-# disallow subscriptions and add subscription exception
-# disallow pub and add pub exception
-
-# TODO: we need 1 client username per client-id, right?
-# then use the asset-type as the client id?
-
-    # Note: If it exists already, API does not allow to update certain
-    #       settings. It must be disabled first.
-    - name: "MQTT: Disable Client Username"
-      solace_client_username:
-        name: "{{ mqtt.name }}"
-        settings:
-          enabled: false
+    - name: "MQTT: ACL Profile Publish Topic Exception"
+      solace_acl_publish_topic_exception:
+        semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+        acl_profile_name: "{{ mqtt.name }}"
+        name: "{{ pub_topic }}"
         state: present
+      loop: "{{ mqtt.acl_profile.pub_topics }}"
+      loop_control:
+        loop_var: pub_topic
+
+    - name: "MQTT: ACL Profile Subscribe Topic Exception"
+      solace_acl_subscribe_topic_exception:
+        semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+        acl_profile_name: "{{ mqtt.name }}"
+        name: "{{ sub_topic }}"
+        state: present
+      loop: "{{ mqtt.acl_profile.sub_topics }}"
+      loop_control:
+        loop_var: sub_topic
 
     - name: "MQTT: Client Username"
       solace_client_username:
         name: "{{ mqtt.name }}"
         settings:
-          enabled: true
           password: "{{ mqtt.name }}"
           aclProfileName: "{{ mqtt.name }}"
           clientProfileName: "{{ mqtt.name }}"
         state: present
-
-    # # DEBUG
-    # - meta: end_play
 
     - name: "MQTT: Mqtt Sessions"
       include_tasks: ./lib/tasks.playbook.mqtt-sessions.yml
       loop: "{{ mqtt.mqtt_sessions }}"
       loop_control:
         loop_var: mqtt_session
+
+    - name: "MQTT: Client Username - Enable"
+      solace_client_username:
+        name: "{{ mqtt.name }}"
+        settings:
+          enabled: true
+        state: present
 
 
 ###

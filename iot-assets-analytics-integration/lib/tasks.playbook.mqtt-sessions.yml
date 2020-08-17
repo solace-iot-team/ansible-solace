@@ -29,8 +29,7 @@
       solace_mqtt_session:
         name: "{{ mqtt_session.client_id }}"
         settings:
-          enabled: false
-          egressEnabled: false
+          enabled: true
           owner: "{{ mqtt.name }}"
         state: present
 
