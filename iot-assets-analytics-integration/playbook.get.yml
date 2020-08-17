@@ -1,0 +1,68 @@
+
+# ---------------------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------------------------------
+
+-
+  name: "Get Service/Broker Details"
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+
+  tasks:
+
+    - name: "Gather Solace Facts"
+      solace_gather_facts:
+      no_log: true
+
+    - name: "Get Facts: all client connection details"
+      solace_get_facts:
+        hostvars: "{{ hostvars }}"
+        host: "{{ inventory_hostname }}"
+        field_funcs:
+          - get_allClientConnectionDetails
+      register: result
+      no_log: true
+
+    - set_fact:
+        client_connection_details: "{{ result.facts }}"
+
+    - name: "Save 'client_connection_details' to File"
+      local_action:
+        module: copy
+        content: "{{ client_connection_details | to_nice_json }}"
+        dest: "./tmp/generated/{{ inventory_hostname }}.client_connection_details.json"
+      no_log: true
+
+###
+# The End.
