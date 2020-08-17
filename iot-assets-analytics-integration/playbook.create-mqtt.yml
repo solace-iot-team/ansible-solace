@@ -1,0 +1,153 @@
+
+# ---------------------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------------------------------
+
+-
+  name: "Configure MQTT for Assets"
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_client_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_acl_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_client_username:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_mqtt_session:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      virtual_router: "{{ virtual_router }}"
+    solace_mqtt_session_subscription:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      virtual_router: "{{ virtual_router }}"
+
+  tasks:
+
+    # DEBUG
+    # - meta: end_play
+
+    - include_vars:
+        file: "./lib/vars.mqtt.yml"
+        name: mqtt
+
+    - name: "MQTT: Client Profile"
+      solace_client_profile:
+        name: "{{ mqtt.name }}"
+        settings:
+          # TODO: figure out the correct settings for most restrictive setup
+          allowBridgeConnectionsEnabled: false
+          allowGuaranteedMsgSendEnabled: true
+          allowGuaranteedMsgReceiveEnabled: true
+          maxEndpointCountPerClientUsername: 10
+        state: present
+
+    - name: "MQTT: ACL Profile"
+      solace_acl_profile:
+        name: "{{ mqtt.name }}"
+        settings:
+          # TODO: figure out the correct settings for most restrictive setup
+          clientConnectDefaultAction: "allow"
+          publishTopicDefaultAction: "allow"
+          subscribeTopicDefaultAction: "allow"
+        state: present
+
+# TODO:
+# disallow subscriptions and add subscription exception
+# disallow pub and add pub exception
+
+# TODO: we need 1 client username per client-id, right?
+# then use the asset-type as the client id?
+
+    # Note: If it exists already, API does not allow to update certain
+    #       settings. It must be disabled first.
+    - name: "MQTT: Disable Client Username"
+      solace_client_username:
+        name: "{{ mqtt.name }}"
+        settings:
+          enabled: false
+        state: present
+
+    - name: "MQTT: Client Username"
+      solace_client_username:
+        name: "{{ mqtt.name }}"
+        settings:
+          enabled: true
+          password: "{{ mqtt.name }}"
+          aclProfileName: "{{ mqtt.name }}"
+          clientProfileName: "{{ mqtt.name }}"
+        state: present
+
+    # # DEBUG
+    # - meta: end_play
+
+    - name: "MQTT: Mqtt Sessions"
+      include_tasks: ./lib/tasks.playbook.mqtt-sessions.yml
+      loop: "{{ mqtt.mqtt_sessions }}"
+      loop_control:
+        loop_var: mqtt_session
+
+
+###
+# The End.
