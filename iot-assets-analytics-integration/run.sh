@@ -57,12 +57,19 @@ rm ./tmp/*
 # Run
 
 runScripts=(
+  # create
   "./run.create-sc-service.sh"
   "./run.create-bridge.sh"
   "./run.create-rdp-central-broker.sh"
+  "./run.create-mqtt-edge-broker.sh"
+  # get details
+  "./run.get.sh"
+  # remove again
+  "./run.remove-mqtt-edge-broker.sh"
   "./run.remove-rdp-central-broker.sh"
   "./run.remove-bridge.sh"
   "./run.remove-sc-service.sh"
+
 )
 
 for runScript in ${runScripts[@]}; do
