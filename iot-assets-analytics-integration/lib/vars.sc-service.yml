@@ -28,6 +28,25 @@
   datacenterId: aws-eu-west-2a
   serviceTypeId: enterprise
   serviceClassId: enterprise-250-nano
+  attributes:
+    customizedMessagingPorts:
+      # disable plain & compressed if TLS bridge chosen
+      # serviceSmfPlainTextListenPort: 0
+      # serviceSmfCompressedListenPort: 0
+      serviceSmfPlainTextListenPort: 55555
+      serviceSmfCompressedListenPort: 55003
+      serviceSmfTlsListenPort: 55443
+      serviceAmqpPlainTextListenPort: 0
+      serviceAmqpTlsListenPort: 0
+      serviceMqttPlainTextListenPort: 1883
+      serviceMqttTlsListenPort: 8883
+      serviceMqttTlsWebSocketListenPort: 0
+      serviceMqttWebSocketListenPort: 0
+      serviceRestIncomingPlainTextListenPort: 0
+      serviceRestIncomingTlsListenPort: 0
+      serviceWebPlainTextListenPort: 0
+      serviceWebTlsListenPort: 0
+
 
 ###
 # The End.
