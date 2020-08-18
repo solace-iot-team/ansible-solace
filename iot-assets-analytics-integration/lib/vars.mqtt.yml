@@ -25,19 +25,22 @@
 ---
   name: as-iot-assets-mqtt-edge
   acl_profile:
-      # topic pattern: {domain}/{asset-type-id}/{asset-id}/{region-id}/{data-type-id}
       pub_topics:
-        - "as-iot-assets/*/*/*/stream-metrics"
-        - "as-iot-assets/*/*/*/stream-metrics-2"
-        - "as-iot-assets/*/*/*/stream-metrics-3"
+        # topic pattern: {domain}/{asset-type-id}/{asset-id/device_id}/{region-id}/{data-type-id}
+        - "as-iot-assets/*/$client-id/*/stream-metrics"
+        - "as-iot-assets/*/$client-id/*/stream-metrics-2"
+        - "as-iot-assets/*/$client-id/*/stream-metrics-3"
       sub_topics:
-        - "as-iot-assets/*/*/config/>"  
-  mqtt_sessions:
-    - client_id: "asset-id-1"
+        # topic pattern: {domain}/{asset-type-id}/{region-id}/{data-type-id}
+        - "as-iot-assets/*/*/config/>"
+        # topic pattern: {domain}/{asset-type-id}/{asset-id/device_id}/{region-id}/{data-type-id}
+        - "as-iot-assets/*/$client-id/*/config/>"
+  mqtt_assets:
+    - device_id: "asset-id-1"
       subscr_topic: "as-iot-assets/asset-type-a/asset-id-1/config/>"
-    - client_id: "asset-id-2"
+    - device_id: "asset-id-2"
       subscr_topic: "as-iot-assets/asset-type-a/asset-id-2/config/>"
-    - client_id: "asset-id-3"
+    - device_id: "asset-id-3"
       subscr_topic: "as-iot-assets/asset-type-b/asset-id-3/config/>"
 
 ###

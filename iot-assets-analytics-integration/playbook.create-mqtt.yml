@@ -111,13 +111,6 @@
         file: "./lib/vars.mqtt.yml"
         name: mqtt
 
-    - name: "MQTT: Disable Client Username - all clients are disconnected"
-      solace_client_username:
-        name: "{{ mqtt.name }}"
-        settings:
-          enabled: false
-        state: present
-
     - name: "MQTT: Client Profile"
       solace_client_profile:
         name: "{{ mqtt.name }}"
@@ -125,19 +118,15 @@
           allowBridgeConnectionsEnabled: false
           allowGuaranteedMsgSendEnabled: true
           allowGuaranteedMsgReceiveEnabled: true
-          maxConnectionCountPerClientUsername: 10
-          # allowGuaranteedEndpointCreateEnabled: false
-          # serviceSmfMaxConnectionCountPerClientUsername: 0
-          # serviceWebMaxConnectionCountPerClientUsername: 0
-          # maxEndpointCountPerClientUsername: 10
-          # maxTransactedSessionCount: 0
+          allowGuaranteedEndpointCreateEnabled: true
+          allowTransactedSessionsEnabled: false
+          compressionEnabled: true
         state: present
 
     - name: "MQTT: ACL Profile"
       solace_acl_profile:
         name: "{{ mqtt.name }}"
         settings:
-          # TODO: figure out the correct settings for most restrictive setup
           clientConnectDefaultAction: "allow"
           publishTopicDefaultAction: "disallow"
           subscribeTopicDefaultAction: "disallow"
@@ -163,27 +152,34 @@
       loop_control:
         loop_var: sub_topic
 
-    - name: "MQTT: Client Username"
+    - name: "MQTT: Client Usernames"
       solace_client_username:
-        name: "{{ mqtt.name }}"
+        name: "{{ mqtt_asset.device_id }}"
         settings:
-          password: "{{ mqtt.name }}"
+          enabled: false
+          password: "{{ mqtt_asset.device_id }}"
           aclProfileName: "{{ mqtt.name }}"
           clientProfileName: "{{ mqtt.name }}"
         state: present
+      loop: "{{ mqtt.mqtt_assets }}"
+      loop_control:
+        loop_var: mqtt_asset
 
     - name: "MQTT: Mqtt Sessions"
       include_tasks: ./lib/tasks.playbook.mqtt-sessions.yml
-      loop: "{{ mqtt.mqtt_sessions }}"
+      loop: "{{ mqtt.mqtt_assets }}"
       loop_control:
-        loop_var: mqtt_session
+        loop_var: mqtt_asset
 
-    - name: "MQTT: Client Username - Enable"
+    - name: "MQTT: Client Usernames - Enable"
       solace_client_username:
-        name: "{{ mqtt.name }}"
+        name: "{{ mqtt_asset.device_id }}"
         settings:
           enabled: true
         state: present
+      loop: "{{ mqtt.mqtt_assets }}"
+      loop_control:
+        loop_var: mqtt_asset
 
 
 ###

@@ -76,16 +76,19 @@
 
     - name: "MQTT: Remove Mqtt Sessions"
       solace_mqtt_session:
-        name: "{{ mqtt_session.client_id }}"
+        name: "{{ mqtt_asset.device_id }}"
         state: absent
-      loop: "{{ mqtt.mqtt_sessions }}"
+      loop: "{{ mqtt.mqtt_assets }}"
       loop_control:
-        loop_var: mqtt_session
+        loop_var: mqtt_asset
 
-    - name: "MQTT: Remove Client Username"
+    - name: "MQTT: Remove Client Usernames"
       solace_client_username:
-        name: "{{ mqtt.name }}"
+        name: "{{ mqtt_asset.device_id }}"
         state: absent
+      loop: "{{ mqtt.mqtt_assets }}"
+      loop_control:
+        loop_var: mqtt_asset
 
     - name: "MQTT: Remove ACL Profile"
       solace_acl_profile:
