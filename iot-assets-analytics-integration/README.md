@@ -2,6 +2,11 @@
 
 See this blog post to understand the background of this project.
 
+<p align="left"><img src="./doc/images/overview.png" width=700 /></p>
+
+<p align="left"><img src="./doc/images/configuration.png" width=700 /></p>
+
+
 ## Configure the Project
 
 TODO:
