@@ -88,6 +88,14 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
+    solace_bridge_tls_cn:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
     solace_bridge_remote_vpn:
       host: "{{ sempv2_host }}"
       port: "{{ sempv2_port }}"
@@ -124,12 +132,24 @@
 
     - name: "Gather Solace Facts"
       solace_gather_facts:
+      register: result
       no_log: true
+      ignore_errors: true
 
-    # TODO:
-    # - setup secure bridge
-    # - name: Add Trusted Common Name to Bridge
-    #     solace_bridge_tls_cn:
+    - name: "Print result if failed"
+      debug:
+        msg: "{{ result }}"
+      when: result.rc != 0
+      failed_when: result.rc != 0
+
+    # Prepare the central-broker:
+    # - upload the solace-cloud certificate
+    - name: "Upload Solace Cloud Certificate to Central-Broker"
+      solace_cert_authority:
+        name: "{{ bridge.short_name }}"
+        cert_content: "{{ lookup('file', './DigiCert_Global_Root_CA.pem') }}"
+        state: present
+      when: inventory_hostname == "central-broker"
 
     # TODO:
     # probably requires different setup for central & edge broker
@@ -212,6 +232,13 @@
           remoteAuthenticationScheme: basic
         state: present
 
+    - name: "Bridge: Trusted Common Name"
+      solace_bridge_tls_cn:
+        name: "*.messaging.solace.cloud"
+        bridge_name: "{{ bridge.name }}"
+        virtual_router: auto
+        state: present
+
     # # DEBUG
     # - name: "Bridge: Debug: save hostvars to file"
     #   local_action:
@@ -243,10 +270,11 @@
         bridge_virtual_router: auto
         remote_msg_vpn_name: "{{ bridge.hosts[inventory_hostname].remote_vpn }}"
         # choose the correct remote location depending on settings.tlsEnabled and settings.compressedDataEnabled
-        remote_vpn_location: "{{ bridge_remote_msg_vpn_locations.facts.bridge_remoteMsgVpnLocations.plain }}"
+        # see ./tmp/facts.{broker}.bridge-remote-vpn-locations.json
+        remote_vpn_location: "{{ bridge_remote_msg_vpn_locations.facts.bridge_remoteMsgVpnLocations.secured }}"
         settings:
           enabled: true
-          tlsEnabled: false
+          tlsEnabled: true
           compressedDataEnabled: false
           queueBinding: "{{ bridge.name }}"
         state: present

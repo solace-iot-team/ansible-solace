@@ -87,12 +87,12 @@
         get_formattedHostInventory:
           host_entry: edge-broker
           api_token: "{{ api_token }}"
-      register: inv_results
+      register: results
 
     - name: "Save Solace Cloud Service inventory to File"
       local_action:
         module: copy
-        content: "{{ inv_results.facts.formattedHostInventory | to_nice_json }}"
+        content: "{{ results.facts.formattedHostInventory | to_nice_json }}"
         dest: "./tmp/generated/inventory.edge-broker.json"
       changed_when: false
 
