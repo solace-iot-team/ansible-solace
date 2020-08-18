@@ -5,10 +5,7 @@ See this blog post to understand the background of this project.
 ## Configure the Project
 
 TODO:
-* Broker Inventory: `broker.inventory.yml`
-* Playbook: `playbook.yml`
-* README: `README.md`
-* ...
+* download certificate from new service and place ...
 
 ## Run the Project
 
