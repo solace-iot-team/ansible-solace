@@ -2,6 +2,19 @@
 
 Sample tutorials and projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/) using Ansible via REST [SEMP v2](https://docs.solace.com/SEMP/Using-SEMP.htm) (and SEMP v1 if required).
 
+**Tutorials** are examples to show the use of a particular module or set of modules.
+
+They typically follow the naming convention:`working-with-{tutorial-name}`.
+
+**Projects** are more complex examples usually derived from real-life use cases / projects and
+implement one or more specific, repeatable integration patterns.
+
+Most of the tutorials use Solace PubSub+ Standard - the free version - and pull it from docker hub.
+
+Some of the projects / use case examples require a Solace Cloud account in addition to run fully.
+
+Refer to the README in the project / tutorial for details.
+
 #### Links
 
 [Concepts of `ansible-solace`](./Concepts.md).
@@ -84,21 +97,6 @@ export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
 # set debug logging to true / false
 export ANSIBLE_SOLACE_ENABLE_LOGGING=True
 ````
-
-## Tutorials & Sample Projects
-
-Tutorials are examples to show the use of a particular module or set of modules.
-They typically follow the naming convention:`working-with-{tutorial-name}`
-
-Projects are more complex examples usually derived from real-life use cases / projects and
-implement one or more specific, repeatable patterns.
-
-Most of the tutorials use Solace PubSub+ Standard - the free version - and pull it from docker hub.
-
-Some of the projects / use case examples are more complex and require a Solace Cloud account in addition to run fully.
-
-Refer to the README in the project / tutorial for details.
-
 
 ---
 The End.

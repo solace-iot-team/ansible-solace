@@ -1,143 +1,138 @@
 # Concepts
 
-- idempotency
-- hosts are not hosts
-- facts
+## The Basics
 
-A few notes on ansible-solace:
--	The modules support configuration of a broker in an idempotent manner. That means, running the same playbook twice will leave the system in exactly the same state.
--	Ansible has the concept of hosts (obviously) , configure in the inventory file. We have hijacked the host concept – here a host is either:
-o	a Solace Event Broker, or
+The `ansible-solace` modules mostly use the SEMP v2 Config API of the Broker. In some cases, to be backwards compatible with broker versions, they fall back on SEMP v1.
+In order to check the outcome of some of the configurations, some modules also use the SEMP v2 Monitor APIs.
+In addition, some specific Solace Cloud APIs have modules as well, such as creating and deleting a service. They are named `solace_cloud_{module}`.
 
-o	a Solace Cloud Account
+The modules follow the same naming convention as the SEMP v2 API calls so there is an easy mapping between the SEMP documentation and the `ansible-solace` module name.
+For example:
+SEMP v2 API: [clientUsername](https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/config/index.html#/clientUsername) maps to `solace_client_username`.
 
--	This also means, none of the normal setup and fact gathering Ansible provides work. Hence, we need to tell Ansible this and set "ansible_connection": "local" so it doesn’t try to login. To gather Solace Event Broker facts, special modules exists, solace_gather_facts and solace_cloud_account_gather_facts.
--	The ansible-solace modules structure follows the convention of the Solace SEMP V2 API, for example:
-o	solace_client_username maps to https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/config/index.html#/clientUsername
-o	solace_queue maps to https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/config/index.html#/queue
-o	and so on.
+### Types of Modules
 
-TODO:
-- settings are not documented, use the corresponding SEMP V2 API description
-- facts - how to work with them
-  - solace cloud:
-    - create service - inventory, connection params, etc.
-  - broker:
-    - connection params
-  - semp version
+* Configuration modules: `solace_{configuration-object}`.
+  - add/update/delete a configuration object
+  - support the state parameter with values=['present', 'absent']
+* Get modules: `solace_get_{configuration_object}s`.
+  - retrieve a list of configuration objects
 
-## Using the API Version in Playbooks
+### Idempotency
+The configuration modules update/add Broker objects in an idempotent manner.
 
-The `settings` fieldnames can differ from version to version.
-Here are some examples of how to deal with it.
+`state='present'`:
+  - get the current object from the broker
+  - create a delta settings by comparing current object settings with requested settings
+  - update or create current object based on delta settings (or leave it if no delta found)
+
+### Ansible Hosts are not Hosts
+
+The Ansible concept of a host is that, a machine which Ansible logs into, transfers scripts, executes scripts, etc.
+
+**For `ansible-solace`, hosts are actually Brokers or Solace Cloud Accounts.**
+
+Which means a few things:
+  - Ansible cannot login and run it's normal setup / fact gathering routines
+  - always use the following settings in your inventory / playbooks:
+````yaml
+      ansible_connection: local
+      gather_facts: no
+````
+
+### Facts for Solace Brokers
+
+In order to still be able to gather facts about the Broker / Service, the module
+
+  `solace_gather_facts`
+
+exists.
+
+Call it at the beginning of your playbook, so all broker facts are available for the rest of the playbook.
+
+`solace_gather_facts` places the facts gathered in `ansible_facts.solace[inventory_hostname]` as a JSON.
+You can save it to file, print it out and find where the fact you are interested in is located.
+Using jinja2, you can dynamically retrieve facts based on certain settings.
+
+An additional convenience module is also supported: `solace_get_facts`.
+It implements a few functions to directly collect a set of facts without the need to understand the JSON structure.
+For example, to get the connection details of a newly created Solace Cloud service use the following in your playbook:
 
 ````yaml
-# main playbook
+- name: "Gather Solace Facts"
+  solace_gather_facts:
 
-tasks:
-
-- name: Get Solace Facts
+- name: "Get Facts: all client connection details"
   solace_get_facts:
+    hostvars: "{{ hostvars }}"
+    host: "{{ inventory_hostname }}"
+    field_funcs:
+      - get_allClientConnectionDetails
+  register: result
 
-- include_vars:
-    file: "./lib/mqtt.vars.json"
-    name: target_list
+- set_fact:
+    client_connection_details: "{{ result.facts }}"
 
-- name: Adding Mqtt Sessions
-  include_tasks: mqtt.tasks.yml
-  loop: "{{ target_list.mqttSessions }}"
-  loop_control:
-    loop_var: mqtt_session_item
+- name: "Save 'client_connection_details' to File"
+  local_action:
+    module: copy
+    content: "{{ client_connection_details | to_nice_json }}"
+    dest: "./tmp/generated/{{ inventory_hostname }}.client_connection_details.json"
+
 ````
+
+### SEMP v2 API Version
+
+Across broker releases, the supported SEMP v2 API version evolves.
+Where this is the case, the modules affected implement different functionality based on the version.
+The version (retrieved by `solace_gather_facts`) needs to be passed as a parameter to the module, for example:
 
 ````yaml
+- name: "Gather Solace Facts"
+  solace_gather_facts:
 
-# mqtt.tasks.yml
+# ... create an ACL profile ...
 
-- name: Update Mqtt Session
-  # switch settings from vars
-  solace_mqtt_session:
-    mqtt_session_client_id: "{{ mqtt_session_item.mqttSessionClientId }}"
-    settings: "{{ mqtt_session_item.settings._gt_eq_2_14 if ansible_facts.solace.about.api.sempVersion | float >= 2.14 else omit }}"
+- name: "ACL Profile Publish Topic Exception"
+  solace_acl_publish_topic_exception:
+    # jinja2 expression to retrieve the semp version from the gathered facts:
+    semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+    acl_profile_name: "my-new-profile"
+    name: "t/v/a"
     state: present
-
-- name: Update Mqtt Session
-  # skip task if version not correct
-  solace_mqtt_session:
-    mqtt_session_client_id: "{{ mqtt_session_item.mqttSessionClientId }}"
-    settings:
-      queueMaxMsgSize: 200000
-      queueMaxBindCount: 10
-    state: present
-  when: ansible_facts['solace']['about']['api']['sempVersion'] | float >= 2.14
-
 ````
 
-The include file:
+### Settings for ansible-solace modules
 
-````json
-{
-  "mqttSessions": [
-    {
-      "mqttSessionClientId": "ansible-solace_test_mqtt__1__",
-      "settings": {
-        "_gt_eq_2_14": {
-          "queueMaxMsgSize": 200000,
-          "queueMaxBindCount": 10
-        }
-      },
-      "subscriptions": [
-        "ansible-solace/test/__1__/topic/subscription/1/>",
-        "ansible-solace/test/__1__/topic/subscription/2/>",
-        "ansible-solace/test/__1__/topic/subscription/3/>"
-        ]
-    },
-    {
-      "mqttSessionClientId": "ansible-solace_test_mqtt__2__",
-      "subscriptions": [
-        "ansible-solace/test/__2__/topic/subscription/1/>",
-        "ansible-solace/test/__2__/topic/subscription/2/>",
-        "ansible-solace/test/__2__/topic/subscription/3/>"
-        ]
-    }
-  ]
-}
+The settings are NOT documented in the modules.
+Instead, the documentation contains the URLs of the SEMP API call / Solace Cloud API call. Use the official documentation to find the settings for each module.
 
-````
 
 ## Specifying Solace Cloud Parameters in Playbooks
 
 Example inventory template including Solace Cloud API token and service id:
 
-````json
-{
-  "all": {
-    "hosts": {
-      "solace-cloud-1": {
-        "meta": {
-          "account": "{account-name}",
-          "service": "{service-name}"
-        },
-        "ansible_connection": "local",
-        "solace_cloud_api_token": "{api-token}",
-        "solace_cloud_service_id": "{service-id}",
-        "sempv2_host": "{host}.messaging.solace.cloud",
-        "sempv2_port": 943,
-        "sempv2_is_secure_connection": true,
-        "sempv2_username": "{username}",
-        "sempv2_password": "{password}",
-        "sempv2_timeout": "60",
-        "vpn": "{vpn}",
-        "virtual_router": "primary"
-      }
-    }
-  }
-}
+````yaml
+
+---
+all:
+  hosts:
+    edge-broker:
+      ansible_connection: local
+      meta:
+        service_name: Ansible-Solace-IoT-Assets-Edge-Broker-1
+      sempv2_host: xxx.messaging.solace.cloud
+      sempv2_is_secure_connection: true
+      sempv2_password: xxxx
+      sempv2_port: 943
+      sempv2_timeout: '60'
+      sempv2_username: xxxx
+      solace_cloud_api_token: xxxx
+      solace_cloud_service_id: xxxx
+      virtual_router: primary
+      vpn: xxxx
 
 ````
-
-Example playbook:
-See [Client Profile examples/tests](test-test/solace_get_client_profiles/playbook.yml).
 
 ---
 The End.
