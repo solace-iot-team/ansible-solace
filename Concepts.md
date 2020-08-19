@@ -58,7 +58,20 @@ Call it at the beginning of your playbook, so all broker facts are available for
 
 `solace_gather_facts` places the facts gathered in `ansible_facts.solace[inventory_hostname]` as a JSON.
 You can save it to file, print it out and find where the fact you are interested in is located.
-Using jinja2, you can dynamically retrieve facts based on certain settings.
+Using [jinja2](https://palletsprojects.com/p/jinja/), you can dynamically retrieve facts based on certain settings.
+
+Here is a gotcha:
+
+When using modules that require acces to multiple brokers at the same time, for example `solace_bridge_remote_vpn`, we need to ensure that `solace_gather_facts` is executed for each host in the inventory BEFORE the `solace_bridge_remote_vpn` is called.
+The solution is to tell Ansible that by setting **forks 1** parameter for `ansible-playbook`:
+````bash
+  ansible-playbook \
+                    --forks 1 \
+                    -i inventory-with-two-brokers.yml \
+                    -i $edgeBrokerInventory \
+                    $playbook
+````
+This tells ansible to execute each task for all hosts BEFORE moving onto the next task.
 
 An additional convenience module is also supported: `solace_get_facts`.
 It implements a few functions to directly collect a set of facts without the need to understand the JSON structure.
