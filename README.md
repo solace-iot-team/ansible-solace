@@ -64,6 +64,11 @@ pip3 install --upgrade ansible-solace
 pip3 show ansible-solace
 ````
 
+````bash
+# install a specific version of ansible-solace
+  pip3 install --force-reinstall ansible-solace==0.7.1
+````
+
 ## Documentation
 
 List all `ansible-solace` modules:
