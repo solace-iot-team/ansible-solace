@@ -1,20 +1,37 @@
 # Project: Configuring a Hybrid IoT Event Mesh for Streaming Asset Sensor Data into a Data Lake
 
-See this blog post to understand the background of this project.
+## Links
 
-<p align="left"><img src="./doc/images/overview.png" width=700 /></p>
+  - [Overview of the project](./ProjectOverview.md).
 
-<p align="left"><img src="./doc/images/configuration.png" width=700 /></p>
+## Pre-requisites
 
+### Solace Cloud Account
+
+- admin access
+- at least 1 spare service
+
+#### Create an API Token
+
+- create an API Token with the rights to create and delete services
+- copy the token
 
 ## Configure the Project
 
-TODO:
-* download certificate from new service and place ...
+#### Create the Ansible Inventory for the Solace Cloud Account
+
+````bash
+  cp template.inventory.sc-accounts.yml inventory.sc-accounts.yml
+
+  vi inventory.sc-accounts.yml
+    # choose a name for your account
+    # add the api-token
+
+````
 
 ## Run the Project
 
-### Create Solace Cloud Service
+#### Create Solace Cloud Service
 
 ````bash
   ./run.create-sc-service.sh
@@ -25,33 +42,57 @@ Check the new Service facts:
 less ./tmp/facts.solace_cloud_service.*.json
 ````
 
-### Start the local broker
+- download the Certificate from the new service and copy the file into the project's root folder.
+- the pre-configured filename for the certificate is: `./DigiCert_Global_Root_CA.pem`
+- if your certificate's name is different:
+
+````bash
+
+  vi playbook.create-bridge.yml
+
+  # search and replace
+  # ./DigiCert_Global_Root_CA.pem
+
+````
+
+#### Start the local broker
 
 ````bash
   ./start.local.broker.sh
 ````
 
-### Create & Configure the Bridge
+#### Create & Configure the Bridge
 
-run.create-bridge.sh
-  - bridge between them
-    - 1 solace cloud instance
-    - 1 local broker
+````bash
+  ./run.create-bridge.sh
+````
 
+#### Create & Configure the RDP
 
-# Continue
-run.delete-sc-service.sh
-  - delete cloud service
-run.remove-bridge.sh
-  - remove bridge
-run.add-update-config-central-broker.sh
-  - this is the local broker
-  - RDP, etc
-run.remove-config-central-broker.sh
-  - deletes it all
+````bash
+  ./run.create-rdp.sh
+````
 
+#### Create & Configure Asset Connection / MQTT
 
+````bash
+  ./run.create-mqtt.sh
+````
 
+#### Get Client Connection Details
+
+````bash
+  ./run.get.sh
+````
+
+#### Remove All Configurations
+
+````bash
+  ./run.remove-mqtt.sh
+  ./run.remove-rdp.sh
+  ./run.remove-bridge.sh
+  ./run.remove-sc-service.sh
+````
 
 ---
 The End.
