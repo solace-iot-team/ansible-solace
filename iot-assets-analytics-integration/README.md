@@ -28,6 +28,17 @@
     # add the api-token
 
 ````
+#### Define Solace Cloud Service Parameters
+
+````bash
+  vi ./lib/vars.sc-service.yml
+
+  # change these for your set-up:
+  datacenterId: aws-eu-west-2a
+  serviceTypeId: enterprise
+  serviceClassId: enterprise-250-nano
+
+````
 
 ## Run the Project
 

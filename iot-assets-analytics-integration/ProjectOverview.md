@@ -7,7 +7,7 @@ The goal of this project is to show the configuration of a global Solace Event M
 
 Here, we'll limit the scope to 1 Edge Broker and 1 Central Broker:
 
-<p align="center"><img src="./doc/images/overview.png" width=600 /></p>
+<p align="center"><img src="./doc/images/overview.png" width=900 /></p>
 
 ## Topics
 
@@ -71,7 +71,7 @@ In the Integration Function:
 In order to set up the above Mesh and the logic,
 we configure the following objects / elements on the Brokers:
 
-<p align="left"><img src="./doc/images/configuration.png" width=750 /></p>
+<p align="left"><img src="./doc/images/configuration.png" width=900 /></p>
 
 
 ---
