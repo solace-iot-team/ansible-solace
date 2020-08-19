@@ -4,27 +4,33 @@
 
 The `ansible-solace` modules mostly use the SEMP v2 Config API of the Broker. In some cases, to be backwards compatible with broker versions, they fall back on SEMP v1.
 In order to check the outcome of some of the configurations, some modules also use the SEMP v2 Monitor APIs.
-In addition, some specific Solace Cloud APIs have modules as well, such as creating and deleting a service. They are named `solace_cloud_{module}`.
 
 The modules follow the same naming convention as the SEMP v2 API calls so there is an easy mapping between the SEMP documentation and the `ansible-solace` module name.
 For example:
 SEMP v2 API: [clientUsername](https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/config/index.html#/clientUsername) maps to `solace_client_username`.
 
+Some specific Solace Cloud APIs have modules as well, such as creating and deleting a service. They are named `solace_cloud_{module}`.
+
 ### Types of Modules
 
 * Configuration modules: `solace_{configuration-object}`.
   - add/update/delete a configuration object
-  - support the state parameter with values=['present', 'absent']
+  - support the **state** parameter with **values=['present', 'absent']**
 * Get modules: `solace_get_{configuration_object}s`.
   - retrieve a list of configuration objects
 
 ### Idempotency
 The configuration modules update/add Broker objects in an idempotent manner.
 
-`state='present'`:
+**state='present'**:
   - get the current object from the broker
   - create a delta settings by comparing current object settings with requested settings
   - update or create current object based on delta settings (or leave it if no delta found)
+
+**state='absent'**:
+  - check if the object exists
+  - if it does, delete it
+  - if not, do nothing
 
 ### Ansible Hosts are not Hosts
 
@@ -34,7 +40,7 @@ The Ansible concept of a host is that, a machine which Ansible logs into, transf
 
 Which means a few things:
   - Ansible cannot login and run it's normal setup / fact gathering routines
-  - always use the following settings in your inventory / playbooks:
+  - therefore, always use the following settings in your inventory / playbooks:
 ````yaml
       ansible_connection: local
       gather_facts: no
@@ -84,8 +90,7 @@ For example, to get the connection details of a newly created Solace Cloud servi
 ### SEMP v2 API Version
 
 Across broker releases, the supported SEMP v2 API version evolves.
-Where this is the case, the modules affected implement different functionality based on the version.
-The version (retrieved by `solace_gather_facts`) needs to be passed as a parameter to the module, for example:
+Where this is the case, the modules affected implement different functionality based on the version and it needs to be passed as a parameter to the module. For example:
 
 ````yaml
 - name: "Gather Solace Facts"
@@ -131,6 +136,25 @@ all:
       solace_cloud_service_id: xxxx
       virtual_router: primary
       vpn: xxxx
+
+````
+
+For example, the module `solace_client_profile` uses a different API for Brokers and Solace Cloud Services.
+
+````yaml
+
+solace_client_profile:
+  host: "{{ sempv2_host }}"
+  port: "{{ sempv2_port }}"
+  secure_connection: "{{ sempv2_is_secure_connection }}"
+  username: "{{ sempv2_username }}"
+  password: "{{ sempv2_password }}"
+  timeout: "{{ sempv2_timeout }}"
+  msg_vpn: "{{ vpn }}"
+  # if inventory contains solace_cloud_api_token and solace_cloud_service_id, use it,
+  # otherwise set the parameter to None.
+  solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+  solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
 
 ````
 
