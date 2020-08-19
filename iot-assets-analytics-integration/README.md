@@ -9,6 +9,8 @@ To install this specific version:
 ## Links
 
   - [Overview of the project](./ProjectOverview.md).
+  - [How to build an integration function](./IntegrationFunction.md).
+
 
 ## Pre-requisites
 
