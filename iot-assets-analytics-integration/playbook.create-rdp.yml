@@ -181,7 +181,7 @@
         name: "{{ rdp.name }}"
         settings:
           enabled: false
-          remoteHost: "host.domain.com"
+          remoteHost: "{{ rdp.remote_host }}"
           remotePort: 443
           tlsEnabled: true
           outgoingConnectionCount: 10
@@ -193,7 +193,7 @@
       solace_rdp_rest_consumer_trusted_cn:
         rdp_name: "{{ rdp.name }}"
         rest_consumer_name: "{{ rdp.name }}"
-        name: "*.domain.com"
+        name: "{{ rdp.trusted_common_name }}"
         state: present
 
     - name: "RDP: Queue Bindings"

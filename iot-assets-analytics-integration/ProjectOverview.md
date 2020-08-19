@@ -5,7 +5,9 @@ The goal of this project is to show the configuration of a global Solace Event M
 * connects all the Edge Brokers to a Central Broker that aggregates data streams from every connected asset
 * pushes the data streams to an Integration Function which inserts the data into a Data Lake
 
-Here, we'll limit the scope to 1 Edge Broker and 1 Central Broker:
+Here, we'll limit the scope to 1 Edge Broker and 1 Central Broker.
+
+**Note: This version of the project does not include the actual integration function. [Here is a short write-up of how to build a function](./IntegrationFunction.md).**
 
 <p align="center"><img src="./doc/images/overview.png" width=900 /></p>
 
