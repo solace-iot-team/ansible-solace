@@ -26,6 +26,7 @@
 clear
 echo; echo "##############################################################################################################"
 echo
+echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
 source ./.lib/run.project-env.sh
 
@@ -36,13 +37,10 @@ source ./.lib/run.project-env.sh
     ansibleLogFile="./tmp/ansible.log"
     export ANSIBLE_LOG_PATH="$ansibleLogFile"
     export ANSIBLE_DEBUG=False
+    export ANSIBLE_VERBOSITY=3
     # logging: ansible-solace
     export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
     export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-    # select inventory
-    AS_SAMPLES_BROKER_INVENTORY=$(assertFile "broker.inventory.yml") || exit
-    # select broker(s) inside inventory
-    export AS_SAMPLES_BROKERS="all"
   # END SELECT
 
 
@@ -52,24 +50,26 @@ x=$(wait4Key)
 # Prepare
 
 mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.log
-rm -f ./tmp/*hostvars*.json
+rm -f ./tmp/*.*
 
 ##############################################################################################################################
 # Run
-
-playbook="./playbook.yml"
+# select inventory
+centralBrokerInventory=$(assertFile "./inventory.central-broker.yml") || exit
+playbook="./playbook.remove-rdp.yml"
 
 # --step --check -vvv
-ansible-playbook -i $AS_SAMPLES_BROKER_INVENTORY \
-                  $playbook \
-                  --extra-vars "brokers=$AS_SAMPLES_BROKERS" \
-                  -vvv
+ansible-playbook \
+                  -i $centralBrokerInventory \
+                  $playbook
 
-echo
-echo "log files:"
-ls -la ./tmp/*.log
+if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
+
+echo; echo "##############################################################################################################"
+echo; echo "tmp files:"
+ls -la ./tmp/*.*
 echo; echo
+
 
 
 ###

@@ -23,32 +23,24 @@
 # ---------------------------------------------------------------------------------------------
 
 ---
-all:
-  hosts:
-    local:
-      ansible_connection: local
-      sempv2_host: localhost
-      sempv2_port: 8080
-      sempv2_is_secure_connection: false
-      sempv2_username: admin
-      sempv2_password: admin
-      sempv2_timeout: '60'
-      virtual_router: primary
-    # solace-cloud-template:
-    #   meta:
-    #     account: "{account-name}"
-    #     service: "{service-name}"
-    #   ansible_connection: local
-    #   solace_cloud_api_token: "{api-token}"
-    #   solace_cloud_service_id: "{service-id}"
-    #   sempv2_host: "{host}.messaging.solace.cloud"
-    #   sempv2_port: 943
-    #   sempv2_is_secure_connection: true
-    #   sempv2_username: "{username}"
-    #   sempv2_password: "{password}"
-    #   sempv2_timeout: '60'
-    #   virtual_router: primary
-
+    # Note: we use this name for all objects for consistency,
+    #       e.g. client profile, acl, bridge, queue, ...
+    name: as-iot-assets-bridge-edge-to-central
+    # client profile name has a max of 32 chars, so re-define the name here
+    short_name: as-iot-bridge-e-2-c
+    # topic pattern: {domain}/{asset-type-id}/{asset-id}/{region-id}/{data-type-id}
+    # Note: this could also be a list to iterate over
+    subscr_topic: "as-iot-assets/asset-type-a/*/us/stream-metrics"
+    # Notes:
+    # - the hosts and remote_hosts must be the same name as in the inventory
+    # - bridges always come in pairs and reference each other
+    hosts:
+      central-broker:
+        remote_host: edge-broker
+        remote_vpn: as-iot-assets-edge-1
+      edge-broker:
+        remote_host: central-broker
+        remote_vpn: default
 
 ###
 # The End.

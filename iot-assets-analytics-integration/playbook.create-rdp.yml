@@ -1,0 +1,225 @@
+
+# ---------------------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------------------------------
+
+-
+  name: "Configure REST Delivery Point"
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  module_defaults:
+    solace_queue:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_queue_subscription:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_rdp:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_rdp_rest_consumer:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_rdp_rest_consumer_trusted_cn:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_rdp_queue_binding:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_client_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_acl_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_client_username:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+
+  tasks:
+
+    # DEBUG
+    # - meta: end_play
+
+    - include_vars:
+        file: "./lib/vars.rdp.yml"
+        name: rdp
+
+    - name: "RDP: Client Profile"
+      solace_client_profile:
+        name: "{{ rdp.name }}"
+        settings:
+          # TODO: figure out the correct settings for most restrictive setup
+          allowBridgeConnectionsEnabled: false
+          allowGuaranteedMsgSendEnabled: true
+          allowGuaranteedMsgReceiveEnabled: true
+          maxEndpointCountPerClientUsername: 10
+        state: present
+
+    - name: "RDP: ACL Profile"
+      solace_acl_profile:
+        name: "{{ rdp.name }}"
+        settings:
+          # TODO: figure out the correct settings for most restrictive setup
+          clientConnectDefaultAction: "allow"
+          publishTopicDefaultAction: "allow"
+          subscribeTopicDefaultAction: "allow"
+        state: present
+
+    # Note: If it exists already, API does not allow to update certain
+    #       settings. It must be disabled first.
+    - name: "RDP: Disable Client Username"
+      solace_client_username:
+        name: "{{ rdp.name }}"
+        settings:
+          enabled: false
+        state: present
+
+    - name: "RDP: Client Username"
+      solace_client_username:
+        name: "{{ rdp.name }}"
+        settings:
+          enabled: true
+          password: "{{ rdp.name }}"
+          aclProfileName: "{{ rdp.name }}"
+          clientProfileName: "{{ rdp.name }}"
+        state: present
+
+    - name: "Queue: Create Tasks"
+      include_tasks: ./lib/tasks.playbook.rdp-queues.yml
+      register: result
+      loop: "{{ rdp.queues }}"
+      when: result.rc|default(0)==0
+
+    - name: "Queue Subscription: Add"
+      solace_queue_subscription:
+        queue: "{{ item.name }}"
+        name: "{{ item.subscr_topic }}"
+        state: present
+      register: result
+      loop: "{{ rdp.queues }}"
+      when: result.rc|default(0)==0
+
+    - name: "RDP: Disable"
+      solace_rdp:
+        name: "{{ rdp.name }}"
+        settings:
+          enabled: false
+        state: present
+
+    - name: "RDP RestConsumer: Disable"
+      solace_rdp_rest_consumer:
+        rdp_name: "{{ rdp.name }}"
+        name: "{{ rdp.name }}"
+        settings:
+          enabled: false
+          remoteHost: "host.domain.com"
+          remotePort: 443
+          tlsEnabled: true
+          outgoingConnectionCount: 10
+          maxPostWaitTime: 60
+          retryDelay: 5
+        state: present
+
+    - name: "RDP TLS Trusted Common Name: Add to REST Consumer"
+      solace_rdp_rest_consumer_trusted_cn:
+        rdp_name: "{{ rdp.name }}"
+        rest_consumer_name: "{{ rdp.name }}"
+        name: "*.domain.com"
+        state: present
+
+    - name: "RDP: Queue Bindings"
+      solace_rdp_queue_binding:
+        rdp_name: "{{ rdp.name }}"
+        name: "{{ item.name }}"
+        settings:
+          postRequestTarget: "{{ rdp.post_request_target_base }}/{{ item.subscr_topic }}?{{ rdp.post_request_target_params }}"
+        state: present
+      loop: "{{ rdp.queues }}"
+      when: result.rc|default(0)==0
+
+    - name: "RDP RestConsumer: Enable"
+      solace_rdp_rest_consumer:
+        rdp_name: "{{ rdp.name }}"
+        name: "{{ rdp.name }}"
+        settings:
+          enabled: true
+        state: present
+
+    - name: "RDP: Enable"
+      solace_rdp:
+        name: "{{ rdp.name }}"
+        settings:
+          enabled: true
+        state: present
+
+###
+# The End.

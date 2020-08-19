@@ -26,6 +26,7 @@
 clear
 echo; echo "##############################################################################################################"
 echo
+echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
 source ./.lib/run.project-env.sh
 
@@ -36,13 +37,10 @@ source ./.lib/run.project-env.sh
     ansibleLogFile="./tmp/ansible.log"
     export ANSIBLE_LOG_PATH="$ansibleLogFile"
     export ANSIBLE_DEBUG=False
+    export ANSIBLE_VERBOSITY=3
     # logging: ansible-solace
     export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
     export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-    # select inventory
-    AS_SAMPLES_BROKER_INVENTORY=$(assertFile "broker.inventory.yml") || exit
-    # select broker(s) inside inventory
-    export AS_SAMPLES_BROKERS="all"
   # END SELECT
 
 
@@ -52,23 +50,27 @@ x=$(wait4Key)
 # Prepare
 
 mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.log
-rm -f ./tmp/*hostvars*.json
+rm -f ./tmp/*.*
 
 ##############################################################################################################################
 # Run
+# select inventory
+inventory=$(assertFile "./inventory.sc-accounts.yml") || exit
+# select account(s) inside inventory
+accounts="all"
 
-playbook="./playbook.yml"
+playbook="./playbook.remove-sc-service.yml"
 
 # --step --check -vvv
-ansible-playbook -i $AS_SAMPLES_BROKER_INVENTORY \
+ansible-playbook -i $inventory \
                   $playbook \
-                  --extra-vars "brokers=$AS_SAMPLES_BROKERS" \
-                  -vvv
+                  --extra-vars "SOLACE_CLOUD_ACCOUNTS=$accounts"
 
-echo
-echo "log files:"
-ls -la ./tmp/*.log
+if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
+
+echo; echo "##############################################################################################################"
+echo; echo "tmp files:"
+ls -la ./tmp/*.*
 echo; echo
 
 

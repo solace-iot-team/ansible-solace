@@ -1,3 +1,4 @@
+
 # ---------------------------------------------------------------------------------------------
 # MIT License
 #
@@ -22,33 +23,24 @@
 # SOFTWARE.
 # ---------------------------------------------------------------------------------------------
 
----
-all:
-  hosts:
-    local:
-      ansible_connection: local
-      sempv2_host: localhost
-      sempv2_port: 8080
-      sempv2_is_secure_connection: false
-      sempv2_username: admin
-      sempv2_password: admin
-      sempv2_timeout: '60'
-      virtual_router: primary
-    # solace-cloud-template:
-    #   meta:
-    #     account: "{account-name}"
-    #     service: "{service-name}"
-    #   ansible_connection: local
-    #   solace_cloud_api_token: "{api-token}"
-    #   solace_cloud_service_id: "{service-id}"
-    #   sempv2_host: "{host}.messaging.solace.cloud"
-    #   sempv2_port: 943
-    #   sempv2_is_secure_connection: true
-    #   sempv2_username: "{username}"
-    #   sempv2_password: "{password}"
-    #   sempv2_timeout: '60'
-    #   virtual_router: primary
+-
+  name: "Delete Solace Cloud Service"
+  hosts: "{{ SOLACE_CLOUD_ACCOUNTS }}"
+  gather_facts: no
+  any_errors_fatal: true
 
+  tasks:
+
+    - include_vars:
+        file: "./lib/vars.sc-service.yml"
+        name: sc_service
+
+    - name: "Delete Solace Cloud Service"
+      solace_cloud_service:
+        api_token: "{{ api_token }}"
+        name: "{{ sc_service.name }}"
+        state: absent
+      register: result
 
 ###
 # The End.

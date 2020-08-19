@@ -40,7 +40,7 @@ source ./.lib/run.project-env.sh
     export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
     export ANSIBLE_SOLACE_ENABLE_LOGGING=True
     # select inventory
-    export AS_SAMPLES_BROKER_INVENTORY=$(assertFile "broker.inventory.yml") || exit
+    AS_SAMPLES_BROKER_INVENTORY=$(assertFile "broker.inventory.yml") || exit
     # select broker(s) inside inventory
     export AS_SAMPLES_BROKERS="all"
   # END SELECT

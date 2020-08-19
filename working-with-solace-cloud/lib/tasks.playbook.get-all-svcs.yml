@@ -1,3 +1,4 @@
+
 # ---------------------------------------------------------------------------------------------
 # MIT License
 #
@@ -23,32 +24,26 @@
 # ---------------------------------------------------------------------------------------------
 
 ---
-all:
-  hosts:
-    local:
-      ansible_connection: local
-      sempv2_host: localhost
-      sempv2_port: 8080
-      sempv2_is_secure_connection: false
-      sempv2_username: admin
-      sempv2_password: admin
-      sempv2_timeout: '60'
-      virtual_router: primary
-    # solace-cloud-template:
-    #   meta:
-    #     account: "{account-name}"
-    #     service: "{service-name}"
-    #   ansible_connection: local
-    #   solace_cloud_api_token: "{api-token}"
-    #   solace_cloud_service_id: "{service-id}"
-    #   sempv2_host: "{host}.messaging.solace.cloud"
-    #   sempv2_port: 943
-    #   sempv2_is_secure_connection: true
-    #   sempv2_username: "{username}"
-    #   sempv2_password: "{password}"
-    #   sempv2_timeout: '60'
-    #   virtual_router: primary
 
+    - name: "Get Solace Cloud Service Info"
+      solace_cloud_get_service:
+        api_token: "{{ solace_cloud_api_token }}"
+        service_id: "{{ sc_service.serviceId }}"
+      register: result
+      no_log: true
+
+    - name: "Set Fact: Solace Cloud Service"
+      set_fact:
+        sca_service_info: "{{ result.response }}"
+      no_log: true
+
+    - name: "Save Solace Cloud Service Info to File"
+      local_action:
+        module: copy
+        content: "{{ sca_service_info | to_nice_json }}"
+        dest: "./tmp/{{ sc_service.name }}.info.json"
+      no_log: true
+      changed_when: false
 
 ###
 # The End.
