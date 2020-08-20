@@ -120,8 +120,8 @@
           allowGuaranteedMsgReceiveEnabled: true
           allowGuaranteedEndpointCreateEnabled: true
           allowTransactedSessionsEnabled: false
-          compressionEnabled: true
         state: present
+
 
     - name: "MQTT: ACL Profile"
       solace_acl_profile:
