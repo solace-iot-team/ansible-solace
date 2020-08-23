@@ -35,11 +35,11 @@
         - "as-iot-assets/$client-id/config/*"
   mqtt_assets:
     - device_id: "asset-id-1"
-      subscr_topic: "as-iot-assets/asset-id-1/config/*"
+      subscr_topic: "as-iot-assets/asset-id-1/config/+"
     - device_id: "asset-id-2"
-      subscr_topic: "as-iot-assets/asset-id-2/config/*"
+      subscr_topic: "as-iot-assets/asset-id-2/config/+"
     - device_id: "asset-id-3"
-      subscr_topic: "as-iot-assets/asset-id-3/config/*"
+      subscr_topic: "as-iot-assets/asset-id-3/config/+"
 
 ###
 # The End.
