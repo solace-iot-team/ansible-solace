@@ -1,9 +1,9 @@
 # Project: Configuring a Hybrid IoT Event Mesh for Streaming Asset Sensor Data into a Data Lake
 
-This project was tested with `ansible-solace` version: **0.7.1**.
+This project was tested with `ansible-solace` version: **0.7.3**.
 To install this specific version:
 ````bash
-  pip3 install --force-reinstall ansible-solace==0.7.1
+  pip3 install --force-reinstall ansible-solace==0.7.3
 ````
 
 ## Links
