@@ -14,46 +14,19 @@ Some of the projects / use case examples also require a Solace Cloud account to 
 
 Refer to the README in the project / tutorial for details.
 
-#### Links
+#### See Also
 
-[Concepts of `ansible-solace`](./Concepts.md).
-
-[Guide to Creating your own Project](./project-template).
-
-[Report Issues here](https://github.com/solace-iot-team/ansible-solace/issues).
+[Concepts of `ansible-solace`](./Concepts.md) |
+[Guide to Creating your own Project](./project-template) |
+[Issues](https://github.com/solace-iot-team/ansible-solace/issues).
 
 ## Pre-requisites
 
-* python >= 3.6
+* python >= 3.8.3
 * ansible >= 2.10
-* ansible-solace >= 0.6.1
 * docker (e.g. Docker Desktop)
 
-#### Example Installations: Mac
-
-Sequence:
-- Homebrew
-- Python
-- Ansible
-
-````bash
-# Homebrew
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew help
-
-# Python
-brew install python
-brew info python
-brew update && brew upgrade python
-
-python3 -V
-pip3 -V
-
-# Ansible
-pip3 install --upgrade ansible
-ansible --version
-ansible-playbook --version
-````
+[See Installation Examples](./Install.md).
 
 ## Install `ansible-solace`
 
