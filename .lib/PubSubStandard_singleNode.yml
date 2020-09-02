@@ -40,7 +40,7 @@ services:
       #SEMP / PubSub+ Manager
       - '8080:8080'
       #REST Default VPN
-      #- '9000:9000'
+      - '9000:9000'
       #REST Default VPN over TLS
       #- '9443:9443'
       #SMF
