@@ -1,0 +1,10 @@
+{
+    "projectName": "{unique project name = resource group}",
+    "azLocation": "{azure location}",
+    "functionAppAccountName": "{unique name of the function app}",
+    "rdp2blobFunction": {
+        "functionName":"solace-rdp-2-blob",
+        "dataLakeStorageContainerName": "rdp2blob",
+        "dataLakeFixedPathPrefix": "fixed/path/prefix"
+    }
+}

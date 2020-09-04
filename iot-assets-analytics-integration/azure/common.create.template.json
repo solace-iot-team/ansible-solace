@@ -1,0 +1,188 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+            "type": "string",
+            "defaultValue": "solace-int-rdp-az-funcs",
+            "metadata": {
+                "description": "The Project name. Must be unique in AZ Subscription."
+            }
+        },
+        "functionAppStorageName": {
+            "type": "string",
+            "defaultValue": "solacerdpappstorage",
+            "metadata": {
+                "description": "The function app storage account name. Must be unique in AZ Subscription."
+            }
+        }
+    },
+    "variables": {
+        "azLocation": "[resourceGroup().location]",
+        "functionAppStorageAccountName": "[parameters('functionAppStorageName')]",
+        "functionAppStorageAccountId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('functionAppStorageAccountName'))]",
+        "functionAppServicePlanAccountName": "[concat(parameters('projectName'), '-sp')]",
+        "functionAppAppInsightsAccountName": "[concat(parameters('projectName'), '-ai')]",
+        "functionAppAccountName": "[concat(parameters('projectName'), '-fa')]"
+    },
+    "resources": [
+        {
+            "comments": "The service plan for the function app",
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('functionAppServicePlanAccountName')]",
+            "location": "[variables('azLocation')]",
+            // for linux:
+            // "kind": "Linux",
+            "tags": {
+                "projectName": "[parameters('projectName')]"
+            },
+            "sku": {
+                "name": "B3",
+                "tier": "Basic",
+                "size": "B3",
+                "family": "B",
+                "capacity": 1
+            },
+            "kind": "app",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        // Premium Plan
+        // {
+        //     "type": "Microsoft.Web/serverfarms",
+        //     "apiVersion": "2018-02-01",
+        //     "name": "[variables('functionAppServicePlanAccountName')]",
+        //     "location": "[variables('azLocation')]",
+        //     "properties": {
+        //         "name": "[variables('functionAppServicePlanAccountName')]",
+        //         "workerSize": "[parameters('workerSize')]",
+        //         "workerSizeId": "[parameters('workerSizeId')]",
+        //         "numberOfWorkers": "[parameters('numberOfWorkers')]",
+        //         "hostingEnvironment": "[parameters('hostingEnvironment')]",
+        //         "maximumElasticWorkerCount": "20"
+        //     },
+        //     "sku": {
+        //         "Tier": "ElasticPremium",
+        //         // EP1, EP2, EP3
+        //         "Name": "EP1"
+        //     }
+        // },
+        {
+            "comments": "The storage account for the function app",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-04-01",
+            "name": "[variables('functionAppStorageAccountName')]",
+            "location": "[variables('azLocation')]",
+            "tags": {
+                "projectName": "[parameters('projectName')]"
+            },
+            "sku": {
+                "name": "Standard_RAGRS"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "supportsHttpsTrafficOnly": true,
+                 "accessTier": "Hot"
+            }
+        },
+        {
+            "comments": "Application Insights for the Function App",
+            "apiVersion": "2015-05-01",
+            "name": "[variables('functionAppAppInsightsAccountName')]",
+            "type": "Microsoft.Insights/components",
+            "kind": "web",
+            "location": "[variables('azLocation')]",
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('functionAppAccountName'))]": "Resource"
+            },
+            "properties": {
+                "Application_Type": "web",
+                "ApplicationId": "[variables('functionAppAppInsightsAccountName')]"
+            }
+        },
+        {
+            // see https://docs.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code
+            // for additional information about Docker hosted functions
+            "comments": "The Function App",
+            "type": "Microsoft.Web/sites",
+            // for linux:
+            // "kind": "functionapp,linux",
+            "kind": "functionapp",
+            "name": "[variables('functionAppAccountName')]",
+            "apiVersion": "2015-08-01",
+            "location": "[variables('azLocation')]",
+            "tags": {
+                "projectName": "[parameters('projectName')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('functionAppStorageAccountName'))]",
+                "[resourceId('Microsoft.Insights/components', variables('functionAppAppInsightsAccountName'))]",
+                "[resourceId('Microsoft.Web/serverfarms', variables('functionAppServicePlanAccountName'))]"
+            ],
+
+            "properties": {                
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionAppServicePlanAccountName'))]",
+                // for linux:
+                // check the correct node version?
+                // linux: "linuxFxVersion": "DOCKER|microsoft/azure-functions-node8:2.0",
+                "siteConfig": {
+                    // linux: "reserved": true,
+                    // "alwaysOn": true,
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionAppStorageAccountName'), ';AccountKey=', listKeys(variables('functionAppStorageAccountId'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "AzureWebJobsDashboard",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionAppStorageAccountName'), ';AccountKey=', listKeys(variables('functionAppStorageAccountId'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', variables('functionAppAppInsightsAccountName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                            // 3 or 2?"value": "~2"
+                        },
+                        {
+                            "name": "WEBSITE_RUN_FROM_PACKAGE",
+                            "value": "1"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "node"
+                        },
+                        {
+                             "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                             "value": "~12"
+                        },
+                        // required for Windows:
+                        // storage account and file path where the function app code and configuration are stored.
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            // "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionAppStorageAccountName'), ';AccountKey=', listKeys(variables('functionAppStorageAccountId'),'2015-05-01-preview').keys[0].value)]"
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionAppStorageAccountName'), ';AccountKey=', listKeys(variables('functionAppStorageAccountId'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[toLower(variables('functionAppAccountName'))]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

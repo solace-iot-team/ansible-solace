@@ -1,0 +1,88 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+            "type": "string",
+            "defaultValue": "solace-int-rdp-az-funcs",
+            "metadata": {
+                "description": "The Project name. Must be unique in AZ Subscription."
+            }
+        },
+        "dataLakeStorageSKU": {
+            "type": "string",
+            "defaultValue": "Standard_RAGRS",
+            "metadata": {
+                "description": "The target data lake blob storage sku."
+            },
+             "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GZRS",
+                "Standard_RAGZRS"
+            ]
+        },
+        "dataLakeStorageName": {
+            "type": "string",
+            "defaultValue": "solaceintrdpdatalake",
+            "metadata": {
+                "description": "The target data lake blob storage name. Must be unique in AZ Subscription."
+            }
+        }
+    },
+    "variables": {
+        "azLocation": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "comments": "The blob storage account (data lake) for the rdp2blob function",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('dataLakeStorageName')]",
+            "location": "[variables('azLocation')]",
+            "tags": {
+                "projectName": "[parameters('projectName')]"
+            },
+            "sku": {
+                "name": "[parameters('dataLakeStorageSKU')]",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "largeFileSharesState": "Disabled",
+                "isHnsEnabled": true,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        }
+    ],
+    "outputs": {
+        "dataLakeStorageAccountConnectionString": {  
+            "type": "string",  
+            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataLakeStorageName'), ';AccountKey=', listKeys(resourceId(resourceGroup().name,'Microsoft.Storage/storageAccounts', parameters('dataLakeStorageName')), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]"  
+        }
+    }
+}
