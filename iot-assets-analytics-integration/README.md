@@ -90,7 +90,13 @@ less ./tmp/facts.solace_cloud_service.*.json
 #### Deploy Azure Function
 This step is optional. If you don't use an Azure function, the RDP will still be configured with _dummy_ values but not be able to connect.
 
-[Follow these steps](./azure).
+````bash
+  cd azure
+````
+[Follow these steps to setup Azure](./azure).
+````bash
+  cd ..
+````
 
 
 #### Create & Configure the RDP
