@@ -1,4 +1,4 @@
-
+#!/bin/bash
 # ---------------------------------------------------------------------------------------------
 # MIT License
 #
@@ -23,46 +23,32 @@
 # SOFTWARE.
 # ---------------------------------------------------------------------------------------------
 
--
-  name: "Get Service/Broker Details"
-  hosts: all
-  gather_facts: no
-  any_errors_fatal: true
-  module_defaults:
-    solace_gather_facts:
-      host: "{{ sempv2_host }}"
-      port: "{{ sempv2_port }}"
-      secure_connection: "{{ sempv2_is_secure_connection }}"
-      username: "{{ sempv2_username }}"
-      password: "{{ sempv2_password }}"
-      timeout: "{{ sempv2_timeout }}"
-      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
-      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+clear
 
-  tasks:
+#####################################################################################
+# settings
+#
+    scriptDir=$(cd $(dirname "$0") && pwd);
+    deploymentDir="$scriptDir/deployment"
+    settingsFile="$scriptDir/settings.json"
+    settings=$(cat $settingsFile | jq .)
+      projectName=$( echo $settings | jq -r '.projectName' )
+      resourceGroup=$projectName
 
-    - name: "Gather Solace Facts"
-      solace_gather_facts:
-      no_log: true
+echo
+echo "##########################################################################################"
+echo "# Delete Project from Azure"
+echo "# Project Name   : '$projectName'"
+echo
+echo " >>> Deleting Resource Group $projectName ..."
+echo
+  az group delete \
+    --name $resourceGroup \
+    --verbose
+  if [[ $? != 0 ]]; then echo " >>> ERR: deleting resource group"; exit 1; fi
+echo " >>> Success."
 
-    - name: "Get Facts: all client connection details"
-      solace_get_facts:
-        hostvars: "{{ hostvars }}"
-        host: "{{ inventory_hostname }}"
-        field_funcs:
-          - get_allClientConnectionDetails
-      register: result
-      no_log: true
-
-    - set_fact:
-        client_connection_details: "{{ result.facts }}"
-
-    - name: "Save 'client_connection_details' to File"
-      local_action:
-        module: copy
-        content: "{{ client_connection_details | to_nice_json }}"
-        dest: "{{ OUT_DIR }}/{{ inventory_hostname }}.client_connection_details.json"
-      no_log: true
+rm -f $deploymentDir/*
 
 ###
 # The End.

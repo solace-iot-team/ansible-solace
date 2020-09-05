@@ -24,11 +24,11 @@
 # ---------------------------------------------------------------------------------------------
 
 clear
+scriptDir=$(cd $(dirname "$0") && pwd);
 echo; echo "##############################################################################################################"
-echo
 echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
-source ./.lib/run.project-env.sh
+source $scriptDir/.lib/run.project-env.sh
 
 ##############################################################################################################################
 # Settings
@@ -41,27 +41,30 @@ source ./.lib/run.project-env.sh
     # logging: ansible-solace
     export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
     export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-  # END SELECT
-
 
 x=$(showEnv)
 x=$(wait4Key)
 ##############################################################################################################################
 # Prepare
 
-mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.*
+tmpDir="$scriptDir/tmp"
+deploymentDir="$scriptDir/deployment"
+mkdir $tmpDir > /dev/null 2>&1
+rm -rf $tmpDir/*
+mkdir $deploymentDir > /dev/null 2>&1
 
 ##############################################################################################################################
 # Run
 # select inventory
 centralBrokerInventory=$(assertFile "./inventory.central-broker.yml") || exit
 playbook="./playbook.remove-rdp.yml"
+rdpFunctionSettingsFile=$(assertFile "$deploymentDir/settings.az-func.json") || exit
 
 # --step --check -vvv
 ansible-playbook \
                   -i $centralBrokerInventory \
-                  $playbook
+                  $playbook \
+                  --extra-vars "SETTINGS_FILE=$rdpFunctionSettingsFile"
 
 if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
 

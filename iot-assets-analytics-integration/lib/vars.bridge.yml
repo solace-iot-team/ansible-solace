@@ -30,7 +30,8 @@
     short_name: as-iot-bridge-e-2-c
     # topic pattern: {domain}/{asset-type-id}/{asset-id}/{region-id}/{data-type-id}
     # Note: this could also be a list to iterate over
-    subscr_topic: "as-iot-assets/asset-type-a/*/us/stream-metrics"
+    # subscr_topic: "as-iot-assets/asset-type-a/*/us/stream-metrics"
+    subscr_topic: "as-iot-assets/asset-type-a/>"
     # Notes:
     # - the hosts and remote_hosts must be the same name as in the inventory
     # - bridges always come in pairs and reference each other

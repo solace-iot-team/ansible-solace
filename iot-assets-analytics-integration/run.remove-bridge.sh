@@ -24,11 +24,11 @@
 # ---------------------------------------------------------------------------------------------
 
 clear
+scriptDir=$(cd $(dirname "$0") && pwd);
 echo; echo "##############################################################################################################"
-echo
 echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
-source ./.lib/run.project-env.sh
+source $scriptDir/.lib/run.project-env.sh
 
 ##############################################################################################################################
 # Settings
@@ -41,23 +41,24 @@ source ./.lib/run.project-env.sh
     # logging: ansible-solace
     export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
     export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-  # END SELECT
-
 
 x=$(showEnv)
 x=$(wait4Key)
 ##############################################################################################################################
 # Prepare
 
-mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.*
+tmpDir="$scriptDir/tmp"
+deploymentDir="$scriptDir/deployment"
+mkdir $tmpDir > /dev/null 2>&1
+rm -rf $tmpDir/*
+mkdir $deploymentDir > /dev/null 2>&1
 
 ##############################################################################################################################
 # Run
 # select inventory
-centralBrokerInventory=$(assertFile "./inventory.central-broker.yml") || exit
-edgeBrokerInventory=$(assertFile "./tmp/generated/inventory.edge-broker.json") || exit
-playbook="./playbook.remove-bridge.yml"
+centralBrokerInventory=$(assertFile "$scriptDir/inventory.central-broker.yml") || exit
+edgeBrokerInventory=$(assertFile "$deploymentDir/inventory.edge-broker.json") || exit
+playbook="$scriptDir/playbook.remove-bridge.yml"
 
 # --step --check -vvv
 ansible-playbook \

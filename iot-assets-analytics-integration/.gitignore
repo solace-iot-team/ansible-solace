@@ -1,5 +1,6 @@
 
 tmp
+deployment
 *.generated.*
 inventory.sc-accounts.yml
 *.pem

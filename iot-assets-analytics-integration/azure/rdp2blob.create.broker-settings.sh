@@ -23,59 +23,42 @@
 # SOFTWARE.
 # ---------------------------------------------------------------------------------------------
 
-clear
 scriptDir=$(cd $(dirname "$0") && pwd);
-echo; echo "##############################################################################################################"
-echo
-echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
-
-source $scriptDir/.lib/run.project-env.sh
+source $scriptDir/.lib/functions.sh
 
 ##############################################################################################################################
 # Settings
 
-    # logging & debug: ansible
-    ansibleLogFile="./tmp/ansible.log"
-    export ANSIBLE_LOG_PATH="$ansibleLogFile"
-    export ANSIBLE_DEBUG=False
-    export ANSIBLE_VERBOSITY=3
-    # logging: ansible-solace
-    export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
-    export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-  # END SELECT
-
-
-x=$(showEnv)
-x=$(wait4Key)
-##############################################################################################################################
-# Prepare
-
-tmpDir="$scriptDir/tmp"
-deploymentDir="$scriptDir/deployment"
-mkdir $tmpDir > /dev/null 2>&1
-rm -rf $tmpDir/*
-mkdir $deploymentDir > /dev/null 2>&1
+  deploymentDir="$scriptDir/deployment"
+  settingsTemplateFile=$(assertFile "$scriptDir/../lib/settings.az-func.json") || exit
+  settingsFile="$deploymentDir/broker-settings.az-func.json"
+  funcAppInfoFile=$(assertFile "$deploymentDir/rdp2blob.func-app-info.output.json") || exit
+  certName="BaltimoreCyberTrustRoot.crt.pem"
 
 ##############################################################################################################################
 # Run
-# select inventory: switch between edge-broker and central-broker
-edgeBrokerInventory=$(assertFile "$scriptDir/inventory.central-broker.yml") || exit
-edgeBrokerInventory=$(assertFile "$deploymentDir/inventory.edge-broker.json") || exit
-playbook="./playbook.remove-mqtt.yml"
 
-# --step --check -vvv
-ansible-playbook \
-                  -i $edgeBrokerInventory \
-                  $playbook
+# download certificate
+curl --silent -L "https://cacerts.digicert.com/$certName" > $deploymentDir/$certName
+if [[ $? != 0 ]]; then echo ">>> ERR:$runScript"; echo; exit 1; fi
+# create settings file
+funcAppInfoJSON=$(cat $funcAppInfoFile | jq)
+settingsJSON=$(cat $settingsTemplateFile | jq)
+export rdp2Blob_azFuncCode=$( echo $funcAppInfoJSON | jq -r '.functions."solace-rdp-2-blob".code' )
+settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_code=env.rdp2Blob_azFuncCode")
+export rdp2Blob_azFuncHost=$( echo $funcAppInfoJSON | jq -r '.defaultHostName' )
+settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_host=env.rdp2Blob_azFuncHost")
+export hostDomain="*."${rdp2Blob_azFuncHost#*.}
+settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_trusted_common_name=env.hostDomain")
+export certFile="$deploymentDir/$certName"
+settingsJSON=$(echo $settingsJSON | jq ".az_cert_auth.certificate_pem_file=env.certFile")
+echo $settingsJSON > $settingsFile
 
-if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
-
-echo; echo "##############################################################################################################"
-echo; echo "tmp files:"
-ls -la ./tmp/*.*
-echo; echo
-
-
+echo
+echo "##########################################################################################"
+echo "# Certificate: $deploymentDir/$certName"
+echo "# Broker Settings: $settingsFile"
+cat $settingsFile | jq
 
 ###
 # The End.
