@@ -6,13 +6,14 @@ To install this specific version:
   pip3 install --force-reinstall ansible-solace==0.7.1
 ````
 
-## Links
-
-  - [Overview of the project](./ProjectOverview.md).
-  - [How to build an integration function](./IntegrationFunction.md).
+#### See also
+[Overview of the project](./ProjectOverview.md).
 
 
 ## Pre-requisites
+
+* bash
+* [jq](https://stedolan.github.io/jq/download/)
 
 ### Solace Cloud Account
 
@@ -86,16 +87,22 @@ less ./tmp/facts.solace_cloud_service.*.json
   ./run.create-bridge.sh
 ````
 
+#### Deploy Azure Function
+This step is optional. If you don't use an Azure function, the RDP will still be configured with _dummy_ values but not be able to connect.
+
+[Follow these steps](./azure).
+
+
 #### Create & Configure the RDP
 
 ````bash
-  ./run.create-rdp.sh
+  ./run.create-rdp-central-broker.sh
 ````
 
 #### Create & Configure Asset Connection / MQTT
 
 ````bash
-  ./run.create-mqtt.sh
+  ./run.create-mqtt-edge-broker.sh
 ````
 
 #### Get Client Connection Details
@@ -104,14 +111,63 @@ less ./tmp/facts.solace_cloud_service.*.json
   ./run.get.sh
 ````
 
-#### Remove All Configurations
+## Test the Setup
+
+Edge Broker Connection Details:
+````bash
+  less ./deployment/edge-broker.client_connection_details.json
+````
+
+Central Broker Connection Details:
+````bash
+  less ./deployment/central-broker.client_connection_details.json
+````
+
+#### Use MQTT client to send events to the edge broker:
+  - use the Edge Broker MQTT connection details
+  - send messages using these sample topics:
+    ````bash
+    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics
+    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics-1
+    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics-2
+    ````
+
+#### HTTP POST
+
+For a quick end-to-end test using HTTP POST instead:
+
+- HTTP POST events to the central broker:
+````bash
+  ./post.events.central-broker.sh
+````
+- HTTP POST events to the edge broker:
+````bash
+  ./post.events.edge-broker.sh
+````
+
+#### Check Result
+
+  - Check Azure portal to see the events in the blob storage
+
+  - Run script to count the number of files in the blob storage:
+    ````bash
+    azure/rdp2blob.count.sh
+    ````
+
+
+## Remove All Configurations
 
 ````bash
-  ./run.remove-mqtt.sh
-  ./run.remove-rdp.sh
+  ./run.remove-mqtt-edge-broker.sh
+  ./run.remove-rdp-central-broker.sh
   ./run.remove-bridge.sh
   ./run.remove-sc-service.sh
+  ./stop.local.broker.sh
 ````
+
+### Remove Azure Deployment
+
+[Follow steps here](./azure).
 
 ---
 The End.

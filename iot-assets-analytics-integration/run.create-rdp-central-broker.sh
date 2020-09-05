@@ -24,11 +24,13 @@
 # ---------------------------------------------------------------------------------------------
 
 clear
+scriptDir=$(cd $(dirname "$0") && pwd);
+
 echo; echo "##############################################################################################################"
 echo
 echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
-source ./.lib/run.project-env.sh
+source $scriptDir/.lib/run.project-env.sh
 
 ##############################################################################################################################
 # Settings
@@ -41,16 +43,30 @@ source ./.lib/run.project-env.sh
     # logging: ansible-solace
     export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
     export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-  # END SELECT
-
 
 x=$(showEnv)
 x=$(wait4Key)
+
 ##############################################################################################################################
 # Prepare
 
-mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.*
+  tmpDir="$scriptDir/tmp"
+  deploymentDir="$scriptDir/deployment"
+  mkdir $tmpDir > /dev/null 2>&1
+  rm -rf $tmpDir/*
+  mkdir $deploymentDir > /dev/null 2>&1
+
+
+##############################################################################################################################
+# Select the RDP Function Settings
+
+  rdpFunctionSettingsFile="$scriptDir/azure/deployment/broker-settings.az-func.json"
+  if [[ ! -f "$rdpFunctionSettingsFile" ]]; then
+    rdpFunctionSettingsFile=$(assertFile "$scriptDir/lib/settings.az-func.json")
+  fi
+  # copy it to deployment dir
+  cp $rdpFunctionSettingsFile "$deploymentDir/settings.az-func.json"
+  rdpFunctionSettingsFile="$deploymentDir/settings.az-func.json"
 
 ##############################################################################################################################
 # Run
@@ -61,11 +77,14 @@ playbook="./playbook.create-rdp.yml"
 # --step --check -vvv
 ansible-playbook \
                   -i $centralBrokerInventory \
-                  $playbook
+                  $playbook \
+                  --extra-vars "SETTINGS_FILE=$rdpFunctionSettingsFile"
 
 if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
 
 echo; echo "##############################################################################################################"
+echo; echo "Deployment:"; echo;
+ls -la $deploymentDir/*
 echo; echo "tmp files:"
 ls -la ./tmp/*.*
 echo; echo

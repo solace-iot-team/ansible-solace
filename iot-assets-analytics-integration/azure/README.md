@@ -1,16 +1,23 @@
 # Configure Azure & Deploy RDP 2 Blob Function
 
+Deploy and configure a pre-packaged Azure Function that writes to a Blob Storage.
+
+#### See also
+[Azure Function Source Repo](https://github.com/solace-iot-team/solace-int-rdp-az-funcs).
+
 ## Pre-Requisites
 
+* Azure Account
+* Azure CLI
 * bash
 * [jq](https://stedolan.github.io/jq/download/)
-* Azure CLI
 
 ## Login to Azure
 ````bash
 az login
 
-az account set --subscription YOUR-SUBSCRIPTION-NAME-OR-ID
+# if you have more than 1 subscription:
+az account set --subscription {YOUR-SUBSCRIPTION-NAME-OR-ID}
 ````
 
 ## Get the Release Asset for Function
@@ -18,6 +25,8 @@ az account set --subscription YOUR-SUBSCRIPTION-NAME-OR-ID
 ````bash
 ./1.get-function-release.sh
 ````
+
+Check directory `./release`. Contains the function release assets.
 
 ## Create Azure Resources
 
@@ -36,6 +45,8 @@ az appservice list-locations --sku F1
 ````bash
 ./2.create.deployment.sh
 ````
+
+Check directory: `deployment`. Contains the output of the deployment.
 
 ## Delete Resources
 ````bash

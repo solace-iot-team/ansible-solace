@@ -78,6 +78,10 @@
     # - meta: end_play
 
     - include_vars:
+        file: "{{ SETTINGS_FILE }}"
+        name: settings
+        
+    - include_vars:
         file: "./lib/vars.rdp.yml"
         name: rdp
 

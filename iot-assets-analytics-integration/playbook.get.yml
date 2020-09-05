@@ -61,7 +61,7 @@
       local_action:
         module: copy
         content: "{{ client_connection_details | to_nice_json }}"
-        dest: "./tmp/generated/{{ inventory_hostname }}.client_connection_details.json"
+        dest: "{{ OUT_DIR }}/{{ inventory_hostname }}.client_connection_details.json"
       no_log: true
 
 ###

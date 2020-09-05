@@ -93,7 +93,7 @@
       local_action:
         module: copy
         content: "{{ results.facts.formattedHostInventory | to_nice_json }}"
-        dest: "./tmp/generated/inventory.edge-broker.json"
+        dest: "{{ OUT_DIR }}/inventory.edge-broker.json"
       changed_when: false
 
 ###

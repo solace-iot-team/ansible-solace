@@ -24,11 +24,12 @@
 # ---------------------------------------------------------------------------------------------
 
 clear
+scriptDir=$(cd $(dirname "$0") && pwd);
 echo; echo "##############################################################################################################"
 echo
 echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
-source ./.lib/run.project-env.sh
+source $scriptDir/.lib/run.project-env.sh
 
 ##############################################################################################################################
 # Settings
@@ -49,14 +50,17 @@ x=$(wait4Key)
 ##############################################################################################################################
 # Prepare
 
-mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.*
+tmpDir="$scriptDir/tmp"
+deploymentDir="$scriptDir/deployment"
+mkdir $tmpDir > /dev/null 2>&1
+rm -rf $tmpDir/*
+mkdir $deploymentDir > /dev/null 2>&1
 
 ##############################################################################################################################
 # Run
 # select inventory: switch between edge-broker and central-broker
-edgeBrokerInventory=$(assertFile "./inventory.central-broker.yml") || exit
-edgeBrokerInventory=$(assertFile "./tmp/generated/inventory.edge-broker.json") || exit
+edgeBrokerInventory=$(assertFile "$scriptDir/inventory.central-broker.yml") || exit
+edgeBrokerInventory=$(assertFile "$deploymentDir/inventory.edge-broker.json") || exit
 playbook="./playbook.remove-mqtt.yml"
 
 # --step --check -vvv

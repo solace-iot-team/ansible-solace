@@ -30,7 +30,7 @@ source $scriptDir/.lib/functions.sh
 # Settings
 
   deploymentDir="$scriptDir/deployment"
-  settingsTemplateFile=$(assertFile "$scriptDir/.template.broker-settings.az-func.json") || exit
+  settingsTemplateFile=$(assertFile "$scriptDir/../lib/settings.az-func.json") || exit
   settingsFile="$deploymentDir/broker-settings.az-func.json"
   funcAppInfoFile=$(assertFile "$deploymentDir/rdp2blob.func-app-info.output.json") || exit
   certName="BaltimoreCyberTrustRoot.crt.pem"
@@ -48,6 +48,8 @@ export rdp2Blob_azFuncCode=$( echo $funcAppInfoJSON | jq -r '.functions."solace-
 settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_code=env.rdp2Blob_azFuncCode")
 export rdp2Blob_azFuncHost=$( echo $funcAppInfoJSON | jq -r '.defaultHostName' )
 settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_host=env.rdp2Blob_azFuncHost")
+export hostDomain="*."${rdp2Blob_azFuncHost#*.}
+settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_trusted_common_name=env.hostDomain")
 export certFile="$deploymentDir/$certName"
 settingsJSON=$(echo $settingsJSON | jq ".az_cert_auth.certificate_pem_file=env.certFile")
 echo $settingsJSON > $settingsFile

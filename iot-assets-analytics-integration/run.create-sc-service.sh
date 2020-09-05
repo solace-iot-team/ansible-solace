@@ -24,11 +24,12 @@
 # ---------------------------------------------------------------------------------------------
 
 clear
+scriptDir=$(cd $(dirname "$0") && pwd);
 echo; echo "##############################################################################################################"
 echo
 echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
-source ./.lib/run.project-env.sh
+source $scriptDir/.lib/run.project-env.sh
 
 ##############################################################################################################################
 # Settings
@@ -49,10 +50,11 @@ x=$(wait4Key)
 ##############################################################################################################################
 # Prepare
 
-mkdir ./tmp > /dev/null 2>&1
-mkdir ./tmp/generated > /dev/null 2>&1
-rm -f ./tmp/*.*
-#rm -f ./tmp/generated/*.*
+tmpDir="$scriptDir/tmp"
+deploymentDir="$scriptDir/deployment"
+mkdir $tmpDir > /dev/null 2>&1
+rm -rf $tmpDir/*
+mkdir $deploymentDir > /dev/null 2>&1
 
 ##############################################################################################################################
 # Run
@@ -66,13 +68,13 @@ playbook="./playbook.create-sc-service.yml"
 # --step --check -vvv
 ansible-playbook -i $inventory \
                   $playbook \
-                  --extra-vars "SOLACE_CLOUD_ACCOUNTS=$accounts"
+                  --extra-vars "SOLACE_CLOUD_ACCOUNTS=$accounts OUT_DIR=$deploymentDir"
 
 if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
 
 echo; echo "##############################################################################################################"
-echo; echo "generated files:"; echo;
-ls -la ./tmp/generated/*
+echo; echo "Deployment:"; echo;
+ls -la $deploymentDir/*
 echo; echo "tmp files:"
 ls -la ./tmp/*.*
 echo; echo

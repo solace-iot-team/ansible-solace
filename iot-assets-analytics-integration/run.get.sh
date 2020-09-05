@@ -24,11 +24,13 @@
 # ---------------------------------------------------------------------------------------------
 
 clear
+scriptDir=$(cd $(dirname "$0") && pwd);
+
 echo; echo "##############################################################################################################"
 echo
 echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
-source ./.lib/run.project-env.sh
+source $scriptDir/.lib/run.project-env.sh
 
 ##############################################################################################################################
 # Settings
@@ -49,25 +51,31 @@ x=$(wait4Key)
 ##############################################################################################################################
 # Prepare
 
-mkdir ./tmp > /dev/null 2>&1
-rm -f ./tmp/*.*
+tmpDir="$scriptDir/tmp"
+deploymentDir="$scriptDir/deployment"
+mkdir $tmpDir > /dev/null 2>&1
+rm -rf $tmpDir/*
+mkdir $deploymentDir > /dev/null 2>&1
 
 ##############################################################################################################################
 # Run
 
 centralBrokerInventory=$(assertFile "./inventory.central-broker.yml") || exit
-edgeBrokerInventory=$(assertFile "./tmp/generated/inventory.edge-broker.json") || exit
+edgeBrokerInventory=$(assertFile "$deploymentDir/inventory.edge-broker.json") || exit
 playbook="./playbook.get.yml"
 
 # --step --check -vvv
 ansible-playbook \
                   -i $edgeBrokerInventory \
                   -i $centralBrokerInventory \
-                  $playbook
+                  $playbook \
+                  --extra-vars "OUT_DIR=$deploymentDir"
 
 if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
 
 echo; echo "##############################################################################################################"
+echo; echo "Deployment:"; echo;
+ls -la $deploymentDir/*
 echo; echo "tmp files:"
 ls -la ./tmp/*.*
 echo; echo

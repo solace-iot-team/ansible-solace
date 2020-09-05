@@ -43,7 +43,7 @@
       serviceMqttTlsListenPort: 8883
       serviceMqttTlsWebSocketListenPort: 0
       serviceMqttWebSocketListenPort: 0
-      serviceRestIncomingPlainTextListenPort: 0
+      serviceRestIncomingPlainTextListenPort: 9000
       serviceRestIncomingTlsListenPort: 0
       serviceWebPlainTextListenPort: 0
       serviceWebTlsListenPort: 0
