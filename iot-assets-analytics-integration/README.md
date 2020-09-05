@@ -160,7 +160,6 @@ For a quick end-to-end test using HTTP POST instead:
     azure/rdp2blob.count.sh
     ````
 
-
 ## Remove All Configurations
 
 ````bash
@@ -172,6 +171,10 @@ For a quick end-to-end test using HTTP POST instead:
 ````
 
 ### Remove Azure Deployment
+
+````bash
+  cd azure
+````
 
 [Follow steps here](./azure).
 
