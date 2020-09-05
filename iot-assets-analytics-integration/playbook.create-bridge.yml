@@ -29,6 +29,13 @@
   gather_facts: no
   any_errors_fatal: true
   module_defaults:
+    solace_get_available:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
     solace_gather_facts:
       host: "{{ sempv2_host }}"
       port: "{{ sempv2_port }}"
@@ -125,6 +132,12 @@
 
     # DEBUG
     # - meta: end_play
+    - name: "Pause Until Broker available"
+      solace_get_available:
+      register: result
+      until: "result.rc==0 and result.is_available"
+      retries: 25 # 25 * 5 seconds
+      delay: 5 # Every 5 seconds
 
     - include_vars:
         file: "./lib/vars.bridge.yml"
