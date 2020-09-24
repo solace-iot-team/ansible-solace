@@ -23,7 +23,7 @@ brew update && brew upgrade python
 python3 -V
 pip3 -V
 
-# Ansible
+# Ansible - Note: Best to install Ansible using pip3!
 pip3 install --upgrade ansible
 ansible --version
 ansible-playbook --version
@@ -47,7 +47,7 @@ Sequence:
 python3 -V
 pip3 -V
 
-# Ansible
+# Ansible - Note: Best to install Ansible using pip3!
 pip3 install --upgrade ansible
 ansible --version
 ansible-playbook --version
