@@ -23,7 +23,7 @@ Refer to the README in the project / tutorial for details.
 ## Pre-requisites
 
 * Python: python >= 3.6.9
-* Ansible: ansible==2.9.11
+* Ansible: ansible==2.9.11 
 * Docker: docker & docker-compose
 
 _Note: Best to install Ansible using pip3! ansible-solace is only available using pip3. This way you ensure that ansible-solace is installed in the same hierarchy as Ansible._

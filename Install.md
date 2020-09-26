@@ -1,6 +1,6 @@
 # Install Examples
 
-#### Example Installations: Mac
+## Example Installations: Mac
 
 Sequence:
 - Homebrew
@@ -30,7 +30,7 @@ ansible-playbook --version
 [Install Docker Desktop](https://www.docker.com/products/docker-desktop).
 
 
-#### Example Installations: Ubuntu
+## Example Installations: Ubuntu
 
 Tested with: Ubuntu 18.04.5 LTS.
 
