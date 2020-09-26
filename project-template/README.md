@@ -6,6 +6,8 @@ Use this template to create your own project.
 
 ````bash
 
+./start.local.broker.sh
+
 ./run.sh
 
 ````

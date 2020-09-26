@@ -22,19 +22,13 @@ Refer to the README in the project / tutorial for details.
 
 ## Pre-requisites
 
-#### Python
-* python >= 3.8.5
+* Python: python >= 3.6.9
+* Ansible: ansible==2.9.11
+* Docker: docker & docker-compose
 
-#### Ansible
+_Note: Best to install Ansible using pip3! ansible-solace is only available using pip3. This way you ensure that ansible-solace is installed in the same hierarchy as Ansible._
 
-**Note: Best to install Ansible using pip3! ansible-solace is only available using pip3. This way you ensure that ansible-solace is installed in the same hierarchy as Ansible.**
-
-* ansible >= 2.10
-
-#### Docker
-* docker (e.g. Docker Desktop)
-
-[See Installation Examples](./Install.md).
+[**See Installation Examples**](./Install.md).
 
 ## Install `ansible-solace`
 
@@ -82,6 +76,10 @@ export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
 # set debug logging to true / false
 export ANSIBLE_SOLACE_ENABLE_LOGGING=True
 ````
+
+## Test
+
+[Follow the instructions in 'project-template'](./project-template/README.md).
 
 ---
 The End.
