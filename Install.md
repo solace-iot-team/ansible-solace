@@ -10,7 +10,8 @@ Sequence:
 
 ````bash
 # Homebrew
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+# check if it was installed correctly
 brew help
 
 # Python
@@ -22,9 +23,12 @@ python3 -V
 pip3 -V
 
 # Ansible - Note: Best to install Ansible using pip3!
-pip3 install --upgrade ansible
+sudo pip3 install 'ansible>=2.9.11,<2.10.0'
+# check install
 ansible --version
 ansible-playbook --version
+# check install info
+sudo pip3 show ansible
 ````
 
 [Install Docker Desktop](https://www.docker.com/products/docker-desktop).
