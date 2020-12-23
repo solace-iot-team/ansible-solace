@@ -51,6 +51,10 @@ x=$(wait4Key)
 ##############################################################################################################################
 # Prepare
 
+export WORKING_DIR="$scriptDir/tmp"
+mkdir -p $WORKING_DIR
+if [ -z "$CLEAN_WORKING_DIR" ]; then rm -rf $WORKING_DIR/*; fi
+
 mkdir ./tmp > /dev/null 2>&1
 rm -f ./tmp/*.log
 rm -f ./tmp/*hostvars*.json
