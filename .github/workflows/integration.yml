@@ -1,14 +1,12 @@
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke, <ricardo.gomez-ulmke@solace.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 name: integration tests
 on:
   # for testing
   workflow_dispatch:
 
-  schedule:
-    # - cron: '0 1 * * THU'
-    - cron: '0 1 * * *'
+  # schedule:
+  #   # - cron: '0 1 * * THU'
+  #   - cron: '0 1 * * *'
 
 env:
   DEBUG_FLAG: ${{ true }}
