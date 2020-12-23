@@ -1,3 +1,8 @@
+
+![integration tests](https://github.com/solace-iot-team/ansible-solace/workflows/integration%20tests/badge.svg)
+
+:warning: UNDER CONSTRUCTION
+
 # Tutorials & Sample Projects Using `ansible-solace`
 
 Sample tutorials and projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/) using Ansible via REST [SEMP v2](https://docs.solace.com/SEMP/Using-SEMP.htm) (and SEMP v1 if required).
