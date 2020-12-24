@@ -1,35 +1,30 @@
-#!/bin/bash
-# ---------------------------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------------------------
+#!/usr/bin/env bash
 
-clear
 scriptDir=$(cd $(dirname "$0") && pwd);
 
-echo; echo "##############################################################################################################"
-echo "# Script: "$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
+# set the python interpreter
+  export ANSIBLE_PYTHON_INTERPRETER=$(python3 -c "import sys; print(sys.executable)")
 
-source $scriptDir/.lib/run.project-env.sh
+# set verbosity
+  export ANSIBLE_VERBOSITY=3
+
+# set the working dir
+  WORKING_DIR="$scriptDir/tmp"
+
+# enable logging
+  export ANSIBLE_SOLACE_ENABLE_LOGGING=True
+  export ANSIBLE_SOLACE_LOG_PATH="$WORKING_DIR/ansible-solace.log"
+
+# create solace cloud service
+  ansible-playbook \
+    --forks 1 \
+    -i "$WORKING_DIR/central-broker.inventory.yml" \
+    -i "$WORKING_DIR/edge-broker.inventory.yml" \
+    "$scriptDir/playbook.create-bridge.yml" \
+    --extra-vars "WORKING_DIR=$WORKING_DIR" \
+    --extra-vars "SOLACE_CLOUD_API_TOKEN=$SOLACE_CLOUD_API_TOKEN"
+
+exit 1
 
 ##############################################################################################################################
 # Settings

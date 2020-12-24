@@ -1,16 +1,10 @@
 # Project: Configuring a Hybrid IoT Event Mesh for Streaming Asset Sensor Data into a Data Lake
 
-This project was tested with `ansible-solace` version: **0.7.3**.
-To install this specific version:
-````bash
-  pip3 install --force-reinstall ansible-solace==0.7.3
-````
+This project creates an Event Mesh to stream sensor data into a central data lake in Azure.
 
-#### See also
-[Overview of the project](./ProjectOverview.md).
+For details, see [this overview of the project](./ProjectOverview.md).
 
-
-## Pre-requisites
+## Prerequisites
 
 * bash
 * [jq](https://stedolan.github.io/jq/download/)
@@ -19,73 +13,62 @@ To install this specific version:
 
 - admin access
 - at least 1 spare service
+  - _note: settings for the Solace Cloud service in `./vars/solace-cloud-service.vars.yml`. Adjust them to your needs._
 
 #### Create an API Token
 
 - create an API Token with the rights to create and delete services
-- copy the token
+- copy the token - needed during set-up of this tutorial
 
-## Configure the Project
+## Run: Create Broker Services
 
-#### Create the Ansible Inventory for the Solace Cloud Account
 
+Playbook: `playbook.create-services.yml`
+
+Create the Solace Cloud Service: **Ansible-Solace-IoT-Assets-Edge-Broker-1**.
+
+- start a local broker service in docker: `service.playbook.yml`
+  - uses the latest Solace PubSub+ Standard Edition image
+-
 ````bash
-  cp template.inventory.sc-accounts.yml inventory.sc-accounts.yml
-
-  vi inventory.sc-accounts.yml
-    # choose a name for your account
-    # add the api-token
-
-````
-#### Define Solace Cloud Service Parameters
-
-````bash
-  vi ./lib/vars.sc-service.yml
-
-  # change these for your set-up:
-  datacenterId: aws-eu-west-2a
-  serviceTypeId: enterprise
-  serviceClassId: enterprise-250-nano
-
+  export SOLACE_CLOUD_API_TOKEN={the api token}
+  ./run.create-services.sh
 ````
 
-## Run the Project
-
-#### Create Solace Cloud Service
-
+The inventory and full info for the new Solace Cloud service are created in the $WORKING_DIR:
 ````bash
-  ./run.create-sc-service.sh
-````
+  less ./tmp/solace-cloud.ansible_solace_tutorial.inventory.yml
+  less ./tmp/solace-cloud.ansible_solace_tutorial.info.yml
 
-Check the new Service facts:
-````bash
-less ./tmp/facts.solace_cloud_service.*.json
-````
-
-- download the Certificate from the new service and copy the file into the project's root folder.
-- the pre-configured filename for the certificate is: `./DigiCert_Global_Root_CA.pem`
-- if your certificate's name is different:
-
-````bash
-
-  vi playbook.create-bridge.yml
-
-  # search and replace
-  # ./DigiCert_Global_Root_CA.pem
+edge-broker.pem
 
 ````
 
-#### Start the local broker
+Go to the Solace Cloud admin console and check the service has been created.
 
-````bash
-  ./start.local.broker.sh
-````
+need for TLS bridge central to edge broker
+TODO: download into working dir
+  - into WORKING_DIR
+  - download the Certificate from the new service and copy the file into the project's root folder.
+  - the pre-configured filename for the certificate is: `./DigiCert_Global_Root_CA.pem`
 
 #### Create & Configure the Bridge
+
+Sets up the secure bridge between the local (central) broker and the Solace Cloud (edge) broker.
+Uses the certificate from the Solace Cloud service.
+
+Playbook: `playbook.create-bridge.yml`
+
 
 ````bash
   ./run.create-bridge.sh
 ````
+
+---
+---
+---
+
+## Run the Project
 
 #### Deploy Azure Function
 This step is optional. If you don't use an Azure function, the RDP will still be configured with _dummy_ values but not be able to connect.
