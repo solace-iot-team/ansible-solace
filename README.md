@@ -1,8 +1,6 @@
 
 ![integration tests](https://github.com/solace-iot-team/ansible-solace/workflows/integration%20tests/badge.svg)
 
-:warning: UNDER CONSTRUCTION
-
 # Tutorials & Sample Projects Using Solace PubSub+ Ansible Collection
 
 Sample tutorials and projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/)
@@ -11,7 +9,6 @@ using the [Solace PubSub+ Ansible Collection](https://galaxy.ansible.com/solace/
 For User Guides, Installation, and Reference Documentation, visit
 [Solace PubSub+ Ansible Collection Documentation](https://solace-iot-team.github.io/ansible-solace-collection/).
 
-[Help & Issues](https://github.com/solace-iot-team/ansible-solace/issues).
 
 **Tutorials** are examples to show the use of a particular module or set of modules.
 They typically follow the naming convention: `working-with-{tutorial-name}`.
@@ -26,63 +23,6 @@ Some of the projects / use case examples also require a Solace Cloud account to 
 Refer to the README in the project / tutorial for details.
 
 
-## Pre-requisites
-
-* Python: python >= 3.6.9
-* Ansible: ansible>=2.9.11,<2.10.0
-* Docker: docker & docker-compose
-
-_Note: Best to install Ansible using pip3! ansible-solace is only available using pip3. This way you ensure that ansible-solace is installed in the same hierarchy as Ansible._
-
-[**See Installation Examples**](./Install.md).
-
-## Install `ansible-solace`
-
-````bash
-# install / upgrade to latest version of ansible-solace
-sudo pip3 install --upgrade ansible-solace
-
-sudo pip3 show ansible-solace
-````
-
-## Documentation
-
-List all `ansible-solace` modules:
-````bash
-ansible-doc -l | grep solace
-````
-
-Module documentation:
-
-````bash
-
-ansible-doc <module_name>
-# e.g.
-ansible-doc solace_queue
-
-````
-
-## Configure Environment
-
-_Note: By default, ansible-solace will use `/usr/bin/python`._
-
-**_Note: Ensure that the python interpreter specified is the same as the one running Ansible._**
-
-````bash
-export ANSIBLE_PYTHON_INTERPRETER={path-to-python-3}
-````
-
-## Configuration Options for `ansible-solace`
-````bash
-# set the log file path + name
-export ANSIBLE_SOLACE_LOG_PATH="./tmp/ansible-solace.log"
-# set debug logging to true / false
-export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-````
-
-## Test
-
-[Follow the instructions in 'project-template'](./project-template/README.md).
-
 ---
-The End.
+
+[Help & Issues](https://github.com/solace-iot-team/ansible-solace/issues).
