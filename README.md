@@ -3,9 +3,15 @@
 
 :warning: UNDER CONSTRUCTION
 
-# Tutorials & Sample Projects Using `ansible-solace`
+# Tutorials & Sample Projects Using Solace PubSub+ Ansible Collection
 
-Sample tutorials and projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/) using Ansible via REST [SEMP v2](https://docs.solace.com/SEMP/Using-SEMP.htm) (and SEMP v1 if required).
+Sample tutorials and projects that show the use of `ansible-solace` to configure [Solace PubSub+ Event Brokers](https://solace.com/products/event-broker/)
+using the [Solace PubSub+ Ansible Collection](https://galaxy.ansible.com/solace/pubsub_plus).
+
+For User Guides, Installation, and Reference Documentation, visit
+[Solace PubSub+ Ansible Collection Documentation](https://solace-iot-team.github.io/ansible-solace-collection/).
+
+[Help & Issues](https://github.com/solace-iot-team/ansible-solace/issues).
 
 **Tutorials** are examples to show the use of a particular module or set of modules.
 They typically follow the naming convention: `working-with-{tutorial-name}`.
@@ -19,11 +25,6 @@ Some of the projects / use case examples also require a Solace Cloud account to 
 
 Refer to the README in the project / tutorial for details.
 
-#### See Also
-
-[Concepts of `ansible-solace`](./Concepts.md) |
-[Guide to Creating your own Project](./project-template) |
-[Issues](https://github.com/solace-iot-team/ansible-solace/issues).
 
 ## Pre-requisites
 
