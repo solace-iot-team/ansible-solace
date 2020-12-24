@@ -1,33 +1,10 @@
-
-# ---------------------------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------------------------
-
 -
-    name: "Client Setup Example"
-    hosts: "{{ brokers }}"
+    name: Configure - Get/Remove/Add/Update Queue objects with subscriptions
+    hosts: all
     gather_facts: no
     any_errors_fatal: true
+    collections:
+      - solace.pubsub_plus
     module_defaults:
       solace_get_available:
         host: "{{ sempv2_host }}"
@@ -73,8 +50,12 @@
         username: "{{ sempv2_username }}"
         password: "{{ sempv2_password }}"
         timeout: "{{ sempv2_timeout }}"
+    pre_tasks:
+    - include_vars:
+        file: "acl-users.vars.yml"
     tasks:
-      - name: "Pause Until Broker/Service available"
+
+      - name: "Check / pause until service available"
         solace_get_available:
         register: _result
         until: "_result.rc == 0 and _result.is_available == True"
@@ -84,37 +65,40 @@
       - name: Gather Solace Facts
         solace_gather_facts:
 
+      - set_fact:
+          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
+
       - name: Remove Client Usernames before removing the ACL Profile
         solace_client_username:
           name: "{{ item.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           state: absent
-        loop: "{{ users | default([]) }} "
+        loop: "{{ users }}"
 
-      - name: Remove ACL Profile
+      - name: Remove ACL Profiles
         solace_acl_profile:
           name: "{{ item.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           state: absent
-        loop: "{{ acls | default([]) }} "
+        loop: "{{ acls }}"
 
       - name: Add ACL Profile
         solace_acl_profile:
           name: "{{ item.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           settings:
             clientConnectDefaultAction: "{{ item.client_connect_default }}"
-        loop: "{{ acls | default([]) }} "
+        loop: "{{ acls }} "
 
       - name: Remove ACL Publish Exception
         solace_acl_publish_topic_exception:
           name: "{{ item.1.topic }}"
           acl_profile_name: "{{ item.0.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           state: absent
-          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
-        with_subelements: 
-          - "{{ acls | default([]) }} "
+          semp_version: "{{ semp_version }}"
+        with_subelements:
+          - "{{ acls }}"
           - publish_topic_exceptions
           - flags:
             skip_missing: true
@@ -123,11 +107,11 @@
         solace_acl_publish_topic_exception:
           name: "{{ item.1.topic }}"
           acl_profile_name: "{{ item.0.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           topic_syntax: "{{ item.1.syntax }}"
-          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
-        with_subelements: 
-          - "{{ acls | default([]) }} "
+          semp_version: "{{ semp_version }}"
+        with_subelements:
+          - "{{ acls }} "
           - publish_topic_exceptions
           - flags:
             skip_missing: true
@@ -136,11 +120,11 @@
         solace_acl_subscribe_topic_exception:
           name: "{{ item.1.topic }}"
           acl_profile_name: "{{ item.0.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           state: absent
-          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
-        with_subelements: 
-          - "{{ acls | default([]) }} "
+          semp_version: "{{ semp_version }}"
+        with_subelements:
+          - "{{ acls }} "
           - subscribe_topic_exceptions
           - flags:
             skip_missing: true
@@ -149,25 +133,22 @@
         solace_acl_subscribe_topic_exception:
           name: "{{ item.1.topic }}"
           acl_profile_name: "{{ item.0.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           topic_syntax: "{{ item.1.syntax }}"
-          semp_version: "{{ ansible_facts.solace.about.api.sempVersion }}"
-        with_subelements: 
-          - "{{ acls | default([]) }} "
+          semp_version: "{{ semp_version }}"
+        with_subelements:
+          - "{{ acls }} "
           - subscribe_topic_exceptions
           - flags:
             skip_missing: true
 
-      - name: Add Client
+      - name: Add Clients
         solace_client_username:
           name: "{{ item.name }}"
-          msg_vpn: "{{ msg_vpn }}"
+          msg_vpn: "{{ vpn }}"
           settings:
             clientProfileName: "{{ item.client_profile }}"
             aclProfileName: "{{ item.acl_profile }}"
             password: "{{ item.password }}"
             enabled: "{{ item.enabled }}"
-        loop: "{{ users | default([]) }} "
-
-###
-# The End.
+        loop: "{{ users }} "

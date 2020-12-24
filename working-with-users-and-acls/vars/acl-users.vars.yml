@@ -1,0 +1,33 @@
+---
+acls:
+  - name: shipping_publisher
+    client_connect_default: allow
+    publish_topic_exceptions:
+    - topic: shipment/>
+      syntax: smf
+  - name: global_shipping_ops
+    client_connect_default: allow
+    subscribe_topic_exceptions:
+    - topic: shipment/>
+      syntax: smf
+  - name: partner_subscriber
+    client_connect_default: allow
+    subscribe_topic_exceptions:
+    - topic: "shipment/US/>"
+      syntax: smf
+users:
+  - name: publisher
+    password: HLP2
+    acl_profile: shipping_publisher
+    client_profile: default
+    enabled: true
+  - name: global_ops_europe
+    password: wzC3B
+    acl_profile: global_shipping_ops
+    client_profile: default
+    enabled: true
+  - name: demo
+    password: HLP2
+    acl_profile: partner_subscriber
+    client_profile: default
+    enabled: true
