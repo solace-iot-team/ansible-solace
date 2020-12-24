@@ -10,7 +10,7 @@ on:
 
 env:
   DEBUG_FLAG: ${{ true }}
-  TEST_TEST_RUNNER_SCRIPT: "test-runner/run.integration.sh"
+  TEST_TEST_RUNNER_SCRIPT: ".test-runner/run.integration.sh"
   TEST_TEST_RUNNER_LOGS_NAME: test-runner-integration-logs
   TEST_RUNNER_LOGS_DIR: integration-logs
 

@@ -19,6 +19,7 @@ source $PROJECT_HOME/.lib/functions.sh
 # Settings
 baseLogDir=$LOG_DIR
 testProjects=(
+  "quickstart"
   "working-with-queues"
 )
 
@@ -27,10 +28,7 @@ for testProject in ${testProjects[@]}; do
   export LOG_DIR="$baseLogDir/$testProject"
   mkdir -p $LOG_DIR
 
-  echo "##############################################################################################################"
-  echo "# Project: $testProject"
-
-  export TEST_PROJECT=$testProject
+  echo ">>> Testing project: $testProject"
 
   runScript="$PROJECT_HOME/$testProject/.test/_run.sh"
 

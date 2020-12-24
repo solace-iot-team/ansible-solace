@@ -1,0 +1,12 @@
+---
+queues:
+- name: ansible-solace/queues/__1__
+  subscriptions:
+  - ansible-solace/queues/__1__/topic/1/>
+  - ansible-solace/queues/__1__/topic/2/>
+  - ansible-solace/queues/__1__/topic/3/>
+- name: ansible-solace/queues/__2__
+  subscriptions:
+  - ansible-solace/queues/__2__/topic/1/>
+  - ansible-solace/queues/__2__/topic/2/>
+  - ansible-solace/queues/__2__/topic/3/>
