@@ -21,6 +21,7 @@ baseLogDir=$LOG_DIR
 testProjects=(
   "quickstart"
   "working-with-queues"
+  "working-with-solace-cloud"  
 )
 
 for testProject in ${testProjects[@]}; do

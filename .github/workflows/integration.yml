@@ -80,7 +80,7 @@ jobs:
         run: |
           export ANSIBLE_PYTHON_INTERPRETER=$(python -c "import sys; print(sys.executable)")
           export PROJECT_HOME="$GITHUB_WORKSPACE"
-          export SOLACE_CLOUD_API_TOKEN_ALL_PERMISSIONS="${{ secrets.SOLACE_CLOUD_API_TOKEN_ALL_PERMISSIONS }}"
+          export SOLACE_CLOUD_API_TOKEN="${{ secrets.SOLACE_CLOUD_API_TOKEN_ALL_PERMISSIONS }}"
           export LOG_DIR="$GITHUB_WORKSPACE/${TEST_RUNNER_LOGS_DIR}"
           ./${TEST_TEST_RUNNER_SCRIPT}
 
