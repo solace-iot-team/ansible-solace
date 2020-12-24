@@ -1,33 +1,10 @@
-
-# ---------------------------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------------------------
-
 -
   name: "Configure REST Delivery Point"
   hosts: all
   gather_facts: no
   any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
   module_defaults:
     solace_get_available:
       host: "{{ sempv2_host }}"
@@ -117,26 +94,33 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
-
-  tasks:
-
-    # DEBUG
-    # - meta: end_play
-
-    - name: "Pause Until Broker available"
-      solace_get_available:
-      register: result
-      until: "result.rc==0 and result.is_available"
-      retries: 25 # 25 * 5 seconds
-      delay: 5 # Every 5 seconds
-
+  pre_tasks:
     - include_vars:
-        file: "{{ SETTINGS_FILE }}"
-        name: settings
-
-    - include_vars:
-        file: "./lib/vars.rdp.yml"
+        file: "rdp.vars.yml"
         name: rdp
+  tasks:
+    - name: "Check vars"
+      assert:
+        that:
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+
+    - name: Check if real or dummy settings for azure function
+      stat:
+        path: "{{ WORKING_DIR }}/settings.az-func.json"
+      register: s
+    - set_fact:
+        real_az_func: "{{ True if s.stat.exists else False }}"
+
+    - include_vars:
+        file: "{{ WORKING_DIR }}/settings.az-func.json"
+        name: settings
+      when: real_az_func
+
+    - include_vars:
+        file: settings.az-func.json
+        name: settings
+      when: not real_az_func
 
     - name: "Upload Azure Certificate if TLS"
       solace_cert_authority:
@@ -145,7 +129,7 @@
         settings:
           revocationCheckEnabled: false
         state: present
-      when: settings.az_rdp_2_blob_func.az_func_tls_enabled == true
+      when: settings.az_rdp_2_blob_func.az_func_tls_enabled
 
     - name: "RDP: Client Profile"
       solace_client_profile:
@@ -186,7 +170,7 @@
         state: present
 
     - name: "Queue: Create Tasks"
-      include_tasks: ./lib/tasks.playbook.rdp-queues.yml
+      include_tasks: ./tasks/rdp-queues.tasks.yml
       register: result
       loop: "{{ rdp.queues }}"
       when: result.rc|default(0)==0
@@ -207,15 +191,15 @@
           enabled: false
         state: present
 
-    - name: "RDP RestConsumer: Disable"
+    - name: "RDP RestConsumer: Setup"
       solace_rdp_rest_consumer:
         rdp_name: "{{ rdp.name }}"
         name: "{{ rdp.name }}"
         settings:
           enabled: false
           remoteHost: "{{ rdp.remote_host }}"
-          remotePort: 443
-          tlsEnabled: true
+          remotePort: "{{ rdp.remote_port }}"
+          tlsEnabled: "{{ rdp.tls_enabled }}"
           outgoingConnectionCount: "{{ rdp.outgoing_connection_count }}"
           maxPostWaitTime: "{{ rdp.max_response_wait_time_secs }}"
           retryDelay: "{{ rdp.connection_retry_delay_secs }}"
@@ -252,6 +236,3 @@
         settings:
           enabled: true
         state: present
-
-###
-# The End.

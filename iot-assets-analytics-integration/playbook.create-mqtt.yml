@@ -1,33 +1,10 @@
-
-# ---------------------------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------------------------
-
 -
   name: "Configure MQTT for Assets"
   hosts: all
   gather_facts: no
   any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
   module_defaults:
     solace_gather_facts:
       host: "{{ sempv2_host }}"
@@ -98,18 +75,14 @@
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
       virtual_router: "{{ virtual_router }}"
-
+  pre_tasks:
+    - include_vars:
+        file: "mqtt.vars.yml"
+        name: mqtt
   tasks:
-
-    # DEBUG
-    # - meta: end_play
 
     - name: Get Solace Facts
       solace_gather_facts:
-
-    - include_vars:
-        file: "./lib/vars.mqtt.yml"
-        name: mqtt
 
     - name: "MQTT: Client Profile"
       solace_client_profile:
@@ -121,7 +94,6 @@
           allowGuaranteedEndpointCreateEnabled: true
           allowTransactedSessionsEnabled: false
         state: present
-
 
     - name: "MQTT: ACL Profile"
       solace_acl_profile:
@@ -166,7 +138,7 @@
         loop_var: mqtt_asset
 
     - name: "MQTT: Mqtt Sessions"
-      include_tasks: ./lib/tasks.playbook.mqtt-sessions.yml
+      include_tasks: ./tasks/mqtt-sessions.tasks.yml
       loop: "{{ mqtt.mqtt_assets }}"
       loop_control:
         loop_var: mqtt_asset
@@ -180,7 +152,3 @@
       loop: "{{ mqtt.mqtt_assets }}"
       loop_control:
         loop_var: mqtt_asset
-
-
-###
-# The End.

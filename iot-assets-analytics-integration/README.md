@@ -64,6 +64,27 @@ Playbook: `playbook.create-bridge.yml`
   ./run.create-bridge.sh
 ````
 
+#### Create & Configure Asset Connection / MQTT
+
+TODO: explain
+
+Playbook: `playbook.create-mqtt.yml`
+
+````bash
+  ./run.create-mqtt-edge-broker.sh
+````
+
+#### Create & Configure the RDP
+
+TODO: explain
+
+Playbook: `playbook.create-rdp.yml`
+
+````bash
+  ./run.create-rdp-central-broker.sh
+````
+
+
 ---
 ---
 ---
@@ -82,17 +103,6 @@ This step is optional. If you don't use an Azure function, the RDP will still be
 ````
 
 
-#### Create & Configure the RDP
-
-````bash
-  ./run.create-rdp-central-broker.sh
-````
-
-#### Create & Configure Asset Connection / MQTT
-
-````bash
-  ./run.create-mqtt-edge-broker.sh
-````
 
 #### Get Client Connection Details
 
