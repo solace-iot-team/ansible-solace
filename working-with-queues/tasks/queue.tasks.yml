@@ -4,6 +4,7 @@
     - name: Create Queue
       solace_queue:
         name: "{{ queue_item.name }}"
+        msg_vpn: "{{ vpn_name }}"
         settings:
           egressEnabled: false
           ingressEnabled: false
@@ -12,20 +13,24 @@
     - name: Update queue
       solace_queue:
         name: "{{ queue_item.name }}"
+        msg_vpn: "{{ vpn_name }}"
         settings:
           permission: "consume"
+          accessType: non-exclusive          
         state: present
 
     - name: Add / Update all subscriptions
       solace_queue_subscription:
         queue: "{{ queue_item.name }}"
         name: "{{ item }}"
+        msg_vpn: "{{ vpn_name }}"
         state: present
       loop: "{{ queue_item.subscriptions }}"
 
     - name: Enable Egress of Queue
       solace_queue:
         name: "{{ queue_item.name }}"
+        msg_vpn: "{{ vpn_name }}"
         settings:
           egressEnabled: true
           ingressEnabled: true
