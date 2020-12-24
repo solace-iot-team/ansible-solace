@@ -17,7 +17,6 @@ scriptDir=$(cd $(dirname "$0") && pwd);
 
 # create rdp config
   ansible-playbook \
-    -i "$WORKING_DIR/edge-broker.inventory.yml" \
-    "$scriptDir/playbook.remove-mqtt.yml" \
+    "$scriptDir/playbook.remove-services.yml" \
     --extra-vars "WORKING_DIR=$WORKING_DIR" \
     --extra-vars "SOLACE_CLOUD_API_TOKEN=$SOLACE_CLOUD_API_TOKEN"

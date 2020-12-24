@@ -16,4 +16,7 @@ scriptDir=$(cd $(dirname "$0") && pwd);
   export ANSIBLE_SOLACE_LOG_PATH="$WORKING_DIR/ansible-solace.log"
 
 # create solace cloud service
-  ansible-playbook "$scriptDir/playbook.create-services.yml" --extra-vars "WORKING_DIR=$WORKING_DIR" --extra-vars "SOLACE_CLOUD_API_TOKEN=$SOLACE_CLOUD_API_TOKEN"
+  ansible-playbook \
+    "$scriptDir/playbook.create-services.yml" \
+    --extra-vars "WORKING_DIR=$WORKING_DIR" \
+    --extra-vars "SOLACE_CLOUD_API_TOKEN=$SOLACE_CLOUD_API_TOKEN"

@@ -22,7 +22,8 @@ testProjects=(
   "quickstart"
   "working-with-queues"
   "working-with-solace-cloud"
-  "working-with-users-and-acls"  
+  "working-with-users-and-acls"
+  "iot-assets-analytics-integration"  
 )
 
 for testProject in ${testProjects[@]}; do

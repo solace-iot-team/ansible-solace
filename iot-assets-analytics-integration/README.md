@@ -84,6 +84,14 @@ Playbook: `playbook.create-rdp.yml`
   ./run.create-rdp-central-broker.sh
 ````
 
+## Remove All Configurations
+
+````bash
+  ./run.remove-mqtt-edge-broker.sh
+  ./run.remove-rdp-central-broker.sh
+  ./run.remove-bridge.sh
+  ./run.remove-services.sh
+````
 
 ---
 ---
@@ -153,15 +161,6 @@ For a quick end-to-end test using HTTP POST instead:
     azure/rdp2blob.count.sh
     ````
 
-## Remove All Configurations
-
-````bash
-  ./run.remove-mqtt-edge-broker.sh
-  ./run.remove-rdp-central-broker.sh
-  ./run.remove-bridge.sh
-  ./run.remove-sc-service.sh
-  ./stop.local.broker.sh
-````
 
 ### Remove Azure Deployment
 
