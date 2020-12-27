@@ -15,7 +15,7 @@ scriptDir=$(cd $(dirname "$0") && pwd);
   export ANSIBLE_SOLACE_ENABLE_LOGGING=True
   export ANSIBLE_SOLACE_LOG_PATH="$WORKING_DIR/ansible-solace.log"
 
-# create rdp config
+# playbook
   ansible-playbook \
     "$scriptDir/playbook.remove-services.yml" \
     --extra-vars "WORKING_DIR=$WORKING_DIR" \

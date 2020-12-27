@@ -29,6 +29,8 @@ export hostDomain="*."${rdp2Blob_azFuncHost#*.}
 settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_trusted_common_name=env.hostDomain")
 export certFile="$deploymentDir/$certName"
 settingsJSON=$(echo $settingsJSON | jq ".az_cert_auth.certificate_pem_file=env.certFile")
+settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_tls_enabled=true")
+settingsJSON=$(echo $settingsJSON | jq ".az_rdp_2_blob_func.az_func_port=443")
 echo $settingsJSON > $settingsFile
 
 echo

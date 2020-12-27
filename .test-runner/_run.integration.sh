@@ -19,11 +19,10 @@ source $PROJECT_HOME/.lib/functions.sh
 # Settings
 baseLogDir=$LOG_DIR
 testProjects=(
-  "quickstart"
   "working-with-queues"
   "working-with-solace-cloud"
   "working-with-users-and-acls"
-  "iot-assets-analytics-integration"  
+  "iot-assets-analytics-integration"
 )
 
 for testProject in ${testProjects[@]}; do

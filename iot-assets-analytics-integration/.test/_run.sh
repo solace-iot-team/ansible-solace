@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-testProject="working-with-queues"
-testProject="quickstart"
+testProject="iot-assets-analytics-integration"
 scriptDir=$(cd $(dirname "$0") && pwd);
 scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 scriptLogName="$testProject.$scriptName"
@@ -22,14 +21,37 @@ scriptLogName="$testProject.$scriptName"
   $runScript
   code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
 
-TODO: continue as per README
-  # runScript="$scriptDir/../run.facts.sh"
-  # $runScript
-  # code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
-  #
-  # runScript="$scriptDir/../run.delete.sh"
-  # $runScript
-  # code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+  runScript="$scriptDir/../run.create-bridge.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.create-mqtt-edge-broker.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.create-rdp-central-broker.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.create-rdp-central-broker.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.remove-mqtt-edge-broker.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.remove-rdp-central-broker.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.remove-bridge.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.remove-services.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
 
 ###
 # The End.
