@@ -1,7 +1,8 @@
 ---
   name: Ansible-Solace-IoT-Assets-Edge-Broker-1
   msgVpnName: as-iot-assets-edge-1
-  datacenterId: "aws-eu-west-2a"
+  # datacenterId: "aws-eu-west-2a"
+  datacenterId: "aws-ca-central-1a"
   serviceTypeId: "enterprise"
   serviceClassId: "enterprise-250-nano"
   attributes:

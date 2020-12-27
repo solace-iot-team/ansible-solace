@@ -1,7 +1,8 @@
 ---
   name: ansible_solace_tutorial
   msgVpnName: as_tutorial
-  datacenterId: "aws-eu-west-2a"
+  # datacenterId: "aws-eu-west-2a"
+  datacenterId: "aws-ca-central-1a"
   serviceTypeId: "enterprise"
   serviceClassId: "enterprise-250-nano"
   attributes:

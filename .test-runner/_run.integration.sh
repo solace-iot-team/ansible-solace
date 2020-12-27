@@ -7,7 +7,6 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 testRunner="test-runner"
 scriptLogName="$testRunner.$scriptName"
 if [ -z "$PROJECT_HOME" ]; then echo ">>> ERROR: - $scriptLogName - missing env var: PROJECT_HOME"; exit 1; fi
-source $PROJECT_HOME/.lib/functions.sh
 
 ############################################################################################################################
 # Environment Variables
