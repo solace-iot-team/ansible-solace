@@ -3,11 +3,15 @@
     "az_func_name": "solace-rdp-2-blob",
     "az_func_code": "xxx-yyy-zzz",
     "az_func_host": "solace-int-rdp-az-funcs-fa.domain.com",
-    "az_func_port": 111,
-    "az_func_tls_enabled": false,
+    "az_func_port": 443,
+    "az_func_tls_enabled": true,
     "az_func_trusted_common_name": "*.domain.com",
     "az_func_outgoing_connection_count": 3,
     "az_func_max_response_wait_time_secs": 60,
     "az_func_connection_retry_delay_secs": 5
+  },
+  "az_cert_auth": {
+    "name": "AzCyberTrustRoot",
+    "certificate_pem_file": "xyz"
   }
 }

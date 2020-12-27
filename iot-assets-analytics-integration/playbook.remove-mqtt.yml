@@ -71,3 +71,8 @@
       solace_client_profile:
         name: "{{ mqtt.name }}"
         state: absent
+
+    - name: "Delete client connection details file"
+      file:
+        path: "{{ WORKING_DIR }}/edge-broker.client_connection_details.json"
+        state: absent

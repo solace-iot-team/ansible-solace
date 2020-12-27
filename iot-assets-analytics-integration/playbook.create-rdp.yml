@@ -107,13 +107,13 @@
 
     - name: Check if real or dummy settings for azure function
       stat:
-        path: "{{ WORKING_DIR }}/settings.az-func.json"
+        path: "{{ WORKING_DIR }}/azure-deployment/settings.az-func.json"
       register: s
     - set_fact:
         real_az_func: "{{ True if s.stat.exists else False }}"
 
     - include_vars:
-        file: "{{ WORKING_DIR }}/settings.az-func.json"
+        file: "{{ WORKING_DIR }}/azure-deployment/settings.az-func.json"
         name: settings
       when: real_az_func
 

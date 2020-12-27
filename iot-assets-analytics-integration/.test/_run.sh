@@ -22,6 +22,7 @@ scriptLogName="$testProject.$scriptName"
   $runScript
   code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
 
+TODO: continue as per README
   # runScript="$scriptDir/../run.facts.sh"
   # $runScript
   # code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi

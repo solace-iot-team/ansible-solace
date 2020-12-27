@@ -2,12 +2,11 @@
 
 This project creates an Event Mesh to stream sensor data into a central data lake in Azure.
 
-For details, see [this overview of the project](./ProjectOverview.md).
+For details,
+see [Overview of the Project](./ProjectOverview.md)
+and the blog post [Configuring a Hybrid IoT Event Mesh for Streaming Asset Sensor Data into an Azure Data Lake with Ansible](https://solace.com/blog/streaming-asset-sensor-data-azure-datalake-ansible/).
 
 ## Prerequisites
-
-* bash
-* [jq](https://stedolan.github.io/jq/download/)
 
 ### Solace Cloud Account
 
@@ -20,69 +19,143 @@ For details, see [this overview of the project](./ProjectOverview.md).
 - create an API Token with the rights to create and delete services
 - copy the token - needed during set-up of this tutorial
 
-## Run: Create Broker Services
+### Optional: Azure Account
 
+You need an Azure account to deploy the pre-packaged Azure function that writes incoming IoT Asset data to a Blob Storage.
+
+**_Note: You can still run the project without the Azure function but the RDP will not be able to connect._**
+
+## Create Broker Services
 
 Playbook: `playbook.create-services.yml`
 
-Create the Solace Cloud Service: **Ansible-Solace-IoT-Assets-Edge-Broker-1**.
+Variables: `vars/solace-cloud-service.vars.yml`
 
-- start a local broker service in docker: `service.playbook.yml`
-  - uses the latest Solace PubSub+ Standard Edition image
--
+  - creates the Solace Cloud Service: **Ansible-Solace-IoT-Assets-Edge-Broker-1**
+  - starts a local broker service in a docker container: **pubSubStandardSingleNode**
+    - uses the latest Solace PubSub+ Standard Edition image in docker hub
+  - generates the following output files in the `$WORKING_DIR=./tmp`:
+    - `central-broker.inventory.yml` - the Ansible inventory for the local / central broker
+    - `edge-broker.inventory.yml` - the Ansible inventory for the Solace Cloud service / edge broker
+    - `edge-broker.pem` - the certificate downloaded from the edge broker. used later to create a TLS bridge between central & edge brokers
+
 ````bash
   export SOLACE_CLOUD_API_TOKEN={the api token}
   ./run.create-services.sh
 ````
 
-The inventory and full info for the new Solace Cloud service are created in the $WORKING_DIR:
-````bash
-  less ./tmp/solace-cloud.ansible_solace_tutorial.inventory.yml
-  less ./tmp/solace-cloud.ansible_solace_tutorial.info.yml
+Check:
+  - go to the Solace Cloud admin console and check the service has been created
+  - open a private browser window, go to: http://localhost:8080 (admin/admin)
 
-edge-broker.pem
 
-````
+_**Note: ansible-solace modules log requests & responses in `./tmp/ansible-solace.log`.**_
 
-Go to the Solace Cloud admin console and check the service has been created.
 
-need for TLS bridge central to edge broker
-TODO: download into working dir
-  - into WORKING_DIR
-  - download the Certificate from the new service and copy the file into the project's root folder.
-  - the pre-configured filename for the certificate is: `./DigiCert_Global_Root_CA.pem`
-
-#### Create & Configure the Bridge
-
-Sets up the secure bridge between the local (central) broker and the Solace Cloud (edge) broker.
-Uses the certificate from the Solace Cloud service.
+## Create & Configure the Bridge: Edge <-> Central
 
 Playbook: `playbook.create-bridge.yml`
 
+Variables: `vars/bridge.vars.yml`
+
+  - the playbook is called with both inventories, `central-broker.inventory.yml` and `edge-broker.inventory.yml`
+  - creates a new Client Profile on both brokers, `as-iot-bridge-e-2-c`
+  - creates a new ACL profile on both brokers, `as-iot-bridge-e-2-c`
+  - creates a new Client Username on both brokers, `as-iot-assets-bridge-edge-to-central`, using the new Client Profile and ACL Profile
+  - creates a new Queue on both brokers, `as-iot-assets-bridge-edge-to-central`, with a subscription to `as-iot-assets/asset-type-a/>`
+  - uploads the Solace Cloud certificate, `edge-broker.pem`, to the central broker
+  - sets up a secure bridge, `as-iot-assets-bridge-edge-to-central`, between the local (central) broker and the Solace Cloud (edge)
 
 ````bash
   ./run.create-bridge.sh
 ````
+Check:
+  - on both brokers: Client Profile, ACL Profile, Client Username, Queue, Bridge
 
-#### Create & Configure Asset Connection / MQTT
+## Create & Configure Asset Connection / MQTT
 
-TODO: explain
+Configures the MQTT access for IoT assets on the edge broker.
 
 Playbook: `playbook.create-mqtt.yml`
+
+Variables: `vars/mqtt.vars.yml`
+
+  - creates a Client Profile, `as-iot-assets-mqtt-edge`
+  - creates a ACL Profile, `as-iot-assets-mqtt-edge`, with publish & subscription topic exceptions using the `$client-id` substitution variable
+  - creates 1 Client Username for each asset, `asset-id-1`, `asset-id-2`, `asset-id-3`, as defined in the variables
+  - creates 1 MQTT Session for each asset, `asset-id-1`, `asset-id-2`, `asset-id-3`
+  - adds MQTT subscriptions to the MQTT Sessions, example: `as-iot-assets/asset-id-1/config/+`, as defined in the variables
 
 ````bash
   ./run.create-mqtt-edge-broker.sh
 ````
 
-#### Create & Configure the RDP
+Check on Solace Cloud service (edge-broker):
+  - Client Profile, ACL Profile, Client Username
+  - Client Connections -> MQTT, MQTT Sessions and MQTT Clients
 
-TODO: explain
+
+## Optional: Deploy Azure Function
+
+If you don't use an Azure function, the RDP will still be configured with _dummy_ values but not be able to connect.
+
+````bash
+  cd azure
+````
+[Follow these steps to setup Azure](./azure).
+````bash
+  cd ..
+````
+
+## Create & Configure the RDP
+
+Creates the Rest Delivery Point configuration to connect the IoT Assets streaming data with the Azure function that writes the data into the blob storage.
 
 Playbook: `playbook.create-rdp.yml`
+
+Variables: `vars/rdp.vars.yml`
+
+Settings: either the real or dummy settings
+  - real Azure function: `./tmp/azure-deployment/settings.az-func.json`
+  - dummy settings: `./vars/settings.az-func.json`
 
 ````bash
   ./run.create-rdp-central-broker.sh
 ````
+
+Check on `central-broker`:
+- Client Connections -> REST
+- `as-iot-assets-rdp-central`
+  - REST Consumers
+  - Queue Bindings
+
+## Test the Setup
+
+Edge Broker Connection Details:
+````bash
+  less ./tmp/edge-broker.client_connection_details.json
+````
+
+### Use MQTT client to send events to the edge broker:
+  - use the Edge Broker MQTT connection details
+  - send messages using these sample topics:
+    ````bash
+    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics
+    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics-1
+    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics-2
+    ````
+
+### HTTP POST
+
+For a quick end-to-end test using HTTP POST instead:
+````bash
+  ./post.events.edge-broker.sh
+````
+
+### Check Result
+
+Check Azure portal to see the events in the blob storage.
+
 
 ## Remove All Configurations
 
@@ -93,75 +166,6 @@ Playbook: `playbook.create-rdp.yml`
   ./run.remove-services.sh
 ````
 
----
----
----
-
-## Run the Project
-
-#### Deploy Azure Function
-This step is optional. If you don't use an Azure function, the RDP will still be configured with _dummy_ values but not be able to connect.
-
-````bash
-  cd azure
-````
-[Follow these steps to setup Azure](./azure).
-````bash
-  cd ..
-````
-
-
-
-#### Get Client Connection Details
-
-````bash
-  ./run.get.sh
-````
-
-## Test the Setup
-
-Edge Broker Connection Details:
-````bash
-  less ./deployment/edge-broker.client_connection_details.json
-````
-
-Central Broker Connection Details:
-````bash
-  less ./deployment/central-broker.client_connection_details.json
-````
-
-#### Use MQTT client to send events to the edge broker:
-  - use the Edge Broker MQTT connection details
-  - send messages using these sample topics:
-    ````bash
-    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics
-    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics-1
-    as-iot-assets/asset-type-a/asset-id-1/region-id-1/stream-metrics-2
-    ````
-
-#### HTTP POST
-
-For a quick end-to-end test using HTTP POST instead:
-
-- HTTP POST events to the central broker:
-````bash
-  ./post.events.central-broker.sh
-````
-- HTTP POST events to the edge broker:
-````bash
-  ./post.events.edge-broker.sh
-````
-
-#### Check Result
-
-  - Check Azure portal to see the events in the blob storage
-
-  - Run script to count the number of files in the blob storage:
-    ````bash
-    azure/rdp2blob.count.sh
-    ````
-
-
 ### Remove Azure Deployment
 
 ````bash
@@ -171,4 +175,3 @@ For a quick end-to-end test using HTTP POST instead:
 [Follow steps here](./azure).
 
 ---
-The End.

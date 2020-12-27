@@ -152,3 +152,19 @@
       loop: "{{ mqtt.mqtt_assets }}"
       loop_control:
         loop_var: mqtt_asset
+
+    - name: "Get Facts: all client connection details"
+      solace_get_facts:
+        hostvars: "{{ hostvars }}"
+        host: "{{ inventory_hostname }}"
+        field_funcs:
+          - get_allClientConnectionDetails
+      register: result
+
+    - set_fact:
+        client_connection_details: "{{ result.facts }}"
+
+    - name: "Save 'client_connection_details' to File"
+      copy:
+        content: "{{ client_connection_details | to_nice_json }}"
+        dest: "{{ WORKING_DIR }}/edge-broker.client_connection_details.json"
