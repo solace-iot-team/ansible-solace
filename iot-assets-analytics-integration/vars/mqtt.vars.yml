@@ -1,0 +1,18 @@
+---
+  name: as-iot-assets-mqtt-edge
+  acl_profile:
+      pub_topics:
+        # topic pattern: {domain}/{asset-type-id}/{asset-id}/{region-id}/{data-type-id}
+        - "as-iot-assets/*/$client-id/*/stream-metrics"
+        - "as-iot-assets/*/$client-id/*/stream-metrics-2"
+        - "as-iot-assets/*/$client-id/*/stream-metrics-3"
+      sub_topics:
+        # topic pattern: {domain}/{asset-id}/config/{config-type-id}
+        - "as-iot-assets/$client-id/config/*"
+  mqtt_assets:
+    - device_id: "asset-id-1"
+      subscr_topic: "as-iot-assets/asset-id-1/config/+"
+    - device_id: "asset-id-2"
+      subscr_topic: "as-iot-assets/asset-id-2/config/+"
+    - device_id: "asset-id-3"
+      subscr_topic: "as-iot-assets/asset-id-3/config/+"

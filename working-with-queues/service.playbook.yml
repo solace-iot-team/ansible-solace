@@ -1,0 +1,18 @@
+-
+  name: Service Playbook
+  hosts: localhost
+  gather_facts: no
+  any_errors_fatal: true
+  tasks:
+    - name: ensure working_dir exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+
+    - name: "Local Broker Setup"
+      include_role:
+        name: solace.pubsub_plus.broker_service
+      vars:
+        service_type: docker_single_node
+        project_name: broker_service_single_node
+        generated_inventory_file: "{{ WORKING_DIR }}/broker.inventory.yml"

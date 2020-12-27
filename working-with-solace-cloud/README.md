@@ -2,80 +2,73 @@
 
 Creating and deleting services in Solace Cloud accounts.
 
-## Pre-requisites
+## Details
+
+When running the tutorial, the following sequence is executed:
+
+- create a Solace Cloud service
+- get the client connection details from the new service
+- delete the Solace Cloud service
+
+## Prerequisites
 
 ### Solace Cloud Account
 
 - admin access
 - at least 1 spare service
+  - _note: settings for the Solace Cloud service in `./vars/solace-cloud-service.vars.yml`. Adjust them to your needs._
 
 #### Create an API Token
 
 - create an API Token with the rights to create and delete services
 - copy the token - needed during set-up of this tutorial
 
-## Configure the Project
 
-#### Create the Ansible Inventory for the Solace Cloud Account
+## Run: Create Solace Cloud Service
+
+Create the Solace Cloud Service: **ansible_solace_tutorial**.
 
 ````bash
-  cp template.inventory.sc-accounts.yml inventory.sc-accounts.yml
-
-  vi inventory.sc-accounts.yml
-    # choose a name for your account
-    # add the api-token
-
+  export SOLACE_CLOUD_API_TOKEN={the api token}
+  ./run.create.sh
 ````
 
-#### Configure the Service Parameters
-
+The inventory and full info for the new Solace Cloud service are created in the $WORKING_DIR:
 ````bash
-vi ./lib/vars.sc-service.yml
-  # change / adapt the service settings
-````
-
-## Run the Project
-
-### Create Solace Cloud Service
-
-````bash
-  ./run.create-sc-service.sh
+  less ./tmp/solace-cloud.ansible_solace_tutorial.inventory.yml
+  less ./tmp/solace-cloud.ansible_solace_tutorial.info.yml
 ````
 
 Go to the Solace Cloud admin console and check the service has been created.
 
-#### Check the new Service Facts
+## Run: Get Solace Cloud Service Facts
+
+Retrieve facts about the Solace Cloud Service: **ansible_solace_tutorial**.
+
+Note: Uses the generated inventory: **./tmp/solace-cloud.ansible_solace_tutorial.inventory.yml**.
 
 ````bash
-less ./tmp/facts.solace_cloud_service.{the-service-name}.json
+  export SOLACE_CLOUD_API_TOKEN={the api token}
+  ./run.facts.sh
 ````
 
-#### Check the generated Service Inventory File
+The _client connection details_ for the new Solace Cloud service are created in the $WORKING_DIR:
+````bash
+  less ./tmp/solace-cloud.ansible_solace_tutorial.client_connection_details.yml
+````
 
-You can use this as an inventory for subsequent playbooks.
+## Run: Delete Solace Cloud Service
+
+Delete the Solace Cloud Service: **ansible_solace_tutorial**.
 
 ````bash
-less ./tmp/generated/inventory.{the-service-name}.json
+  export SOLACE_CLOUD_API_TOKEN={the api token}
+  ./run.sc-delete.sh
 ````
-### Retrieve Connection Details of the new Solace Cloud Service
 
-_Note: The get playbook also retrieves a list of all Solace Cloud Account services and their service info._
-
+The _client connection details_ for the new Solace Cloud service are created in the $WORKING_DIR:
 ````bash
-  ./run.get.sh
+  less ./tmp/solace-cloud.ansible_solace_tutorial.client_connection_details.yml
 ````
-
-#### Check the generated Connection Details
-````bash
-less ./tmp/generated/*.client_connection_details.json
-````
-
-### Delete the Solace Cloud Service
-
-````bash
-  ./run.delete-sc-service.sh
-````
-
 
 ---
-The End.

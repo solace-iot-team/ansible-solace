@@ -1,33 +1,10 @@
-
-# ---------------------------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------------------------
-
 -
   name: "Create Bridge: Edge to Central"
   hosts: all
   gather_facts: no
   any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
   module_defaults:
     solace_get_available:
       host: "{{ sempv2_host }}"
@@ -127,21 +104,17 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
-
-  tasks:
-
-    # DEBUG
-    # - meta: end_play
-    - name: "Pause Until Broker available"
-      solace_get_available:
-      register: result
-      until: "result.rc==0 and result.is_available"
-      retries: 25 # 25 * 5 seconds
-      delay: 5 # Every 5 seconds
-
+  pre_tasks:
     - include_vars:
-        file: "./lib/vars.bridge.yml"
+        file: "bridge.vars.yml"
         name: bridge
+  tasks:
+    - name: "Check vars"
+      assert:
+        that:
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
 
     - name: "Gather Solace Facts"
       solace_gather_facts:
@@ -149,32 +122,24 @@
       no_log: true
       ignore_errors: true
 
-    - name: "Print result if failed"
-      debug:
-        msg: "{{ result }}"
-      when: result.rc != 0
-      failed_when: result.rc != 0
-
     # Prepare the central-broker:
     # - upload the solace-cloud certificate
+    - set_fact:
+        pem_file: "{{ WORKING_DIR }}/edge-broker.pem"
     - name: "Upload Solace Cloud Certificate to Central-Broker"
       solace_cert_authority:
         name: "{{ bridge.short_name }}"
-        cert_content: "{{ lookup('file', './DigiCert_Global_Root_CA.pem') }}"
+        cert_content: "{{ lookup('file', pem_file) }}"
         state: present
       when: inventory_hostname == "central-broker"
 
-    # TODO:
-    # probably requires different setup for central & edge broker
     - name: "Bridge: Client Profile"
       solace_client_profile:
         name: "{{ bridge.short_name }}"
         settings:
           allowBridgeConnectionsEnabled: true
-          # TODO: figure out the correct settings for most restrictive setup
           allowGuaranteedMsgSendEnabled: true
           allowGuaranteedMsgReceiveEnabled: true
-          # tlsAllowDowngradeToPlainTextEnabled: false
           maxEndpointCountPerClientUsername: 1
         state: present
 
@@ -182,7 +147,6 @@
       solace_acl_profile:
         name: "{{ bridge.short_name }}"
         settings:
-          # TODO: figure out the correct settings for most restrictive setup
           clientConnectDefaultAction: "allow"
           publishTopicDefaultAction: "allow"
           subscribeTopicDefaultAction: "allow"
@@ -251,15 +215,6 @@
         bridge_name: "{{ bridge.name }}"
         virtual_router: auto
         state: present
-
-    # # DEBUG
-    # - name: "Bridge: Debug: save hostvars to file"
-    #   local_action:
-    #     module: copy
-    #     content: "{{ hostvars | to_nice_json }}"
-    #     dest: "./tmp/hostvars.json"
-    #   changed_when: false
-    #
 
     - name: "Bridge: Get Remote Host Bridge Facts"
       solace_get_facts:

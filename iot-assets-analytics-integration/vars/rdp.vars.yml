@@ -1,0 +1,26 @@
+---
+  name: as-iot-assets-rdp-central
+  post_request_target: "/api/{{ settings.az_rdp_2_blob_func.az_func_name }}"
+  post_request_target_params: "code={{ settings.az_rdp_2_blob_func.az_func_code }}"
+  remote_host: "{{ settings.az_rdp_2_blob_func.az_func_host }}"
+  remote_port: "{{ settings.az_rdp_2_blob_func.az_func_port }}"
+  tls_enabled: "{{ settings.az_rdp_2_blob_func.az_func_tls_enabled }}"
+  trusted_common_name: "{{ settings.az_rdp_2_blob_func.az_func_trusted_common_name }}"
+  outgoing_connection_count: "{{ settings.az_rdp_2_blob_func.az_func_outgoing_connection_count }}"
+  max_response_wait_time_secs: "{{ settings.az_rdp_2_blob_func.az_func_max_response_wait_time_secs }}"
+  connection_retry_delay_secs: "{{ settings.az_rdp_2_blob_func.az_func_connection_retry_delay_secs }}"
+  queues:
+      # match topic subscription to queue name
+      # topic pattern: {domain}/{asset-type-id}/{asset-id}/{region-id}/{data-type-id}
+    - name: "RDP-Q/as-iot-assets/_x_/_x_/_x_/stream-metrics"
+      subscr_topic: "as-iot-assets/*/*/*/stream-metrics"
+      path: "as-iot-assets/stream-metrics"
+      pathCompose: "withTime"
+    - name: "RDP-Q/as-iot-assets/_x_/_x_/_x_/stream-metrics-1"
+      subscr_topic: "as-iot-assets/*/*/*/stream-metrics-1"
+      path: "as-iot-assets/stream-metrics-1"
+      pathCompose: "none"
+    - name: "RDP-Q/as-iot-assets/_x_/_x_/_x_/stream-metrics-2"
+      subscr_topic: "as-iot-assets/*/*/*/stream-metrics-2"
+      path: "as-iot-assets/stream-metrics-2"
+      pathCompose: "withTime"

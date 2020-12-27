@@ -1,34 +1,36 @@
 # Tutorial: Working with Queues
 
-Creates queues and subscriptions based on input JSON file.
+Creates VPN, queues and subscriptions based on a variables file.
 
-See ``playbook-include`` for tasks and variables included in the main `playbook.yml`.
+## Details
+
+When running the tutorial, the following sequence is executed:
+
+- start a local broker service in docker: `service.playbook.yml`
+  - uses the latest Solace PubSub+ Standard Edition image
+- create a VPN called `foo`
+- configure the queues & subscriptions: `configure.playbook.yml`
+  - queue definitions: `vars/queues.vars.yml`
+  - loops over queues using task: `tasks/queues.tasks.yml`
+- prompt to inspect queues in broker console
+  ````bash
+  - browser: open a new incognito window
+  - http://localhost:8080
+  - login: admin / admin
+  - vpn: foo
+  ````
+- delete queues
+- delete vpn
 
 ## Run the tutorial
 
-### Start the local broker
+### Prerequisites
 ````bash
-./start.local.broker.sh
+pip install docker-compose
 ````
-
-#### Login to broker console
-- Chrome: open a new incognito window
-- http://localhost:8080
-- user: admin
-- pwd: admin
-
-### Run the playbook
+### Run
 ````bash
 ./run.sh
 ````
-
-### Check Broker
-When prompted, check out the queues on the broker.
-
-### Stop the local broker
-````bash
-./stop.local.broker.sh
-````
-
 ---
 The End.

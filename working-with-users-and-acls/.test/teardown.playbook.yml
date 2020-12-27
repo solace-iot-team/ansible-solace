@@ -1,0 +1,18 @@
+-
+  name: "quickstart teardown"
+  hosts: localhost
+  gather_facts: no
+  any_errors_fatal: true
+  tasks:
+    - stat: path="{{ WORKING_DIR }}/broker.inventory.yml"
+      register: r
+    - assert:
+        that: r.stat.exists == True
+    - name: "Broker Service Delete"
+      include_role:
+        name: solace.pubsub_plus.broker_service
+      vars:
+        service_type: docker_single_node
+        project_name: broker_service_single_node
+        generated_inventory_file: "{{ WORKING_DIR }}/broker.inventory.yml"
+        state: absent

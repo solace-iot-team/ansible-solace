@@ -1,33 +1,11 @@
-#!/bin/bash
-# ---------------------------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------------------------
+#!/usr/bin/env bash
+scriptDir=$(cd $(dirname "$0") && pwd);
 
 #####################################################################################
 # settings
 #
-    scriptDir=$(cd $(dirname "$0") && pwd);
-    source $scriptDir/.lib/functions.sh; if [[ $? != 0 ]]; then echo " >>> ERR: sourcing functions.sh."; exit 1; fi
+
+    WORKING_DIR="$scriptDir/../tmp"
     settingsFile="$scriptDir/settings.json"
     settings=$(cat $settingsFile | jq .)
 
@@ -41,11 +19,11 @@
         dataLakeStorageContainerName=$( echo $settings | jq -r '."'$functionElement'".dataLakeStorageContainerName' )
         dataLakeFixedPathPrefix=$( echo $settings | jq -r '."'$functionElement'".dataLakeFixedPathPrefix' )
 
-    releaseDir="$scriptDir/release"
+    releaseDir="$WORKING_DIR/release"
     zipDeployFile=$(ls $releaseDir/*.zip)
     templateFile="rdp2blob.create.template.json"
     parametersFile="rdp2blob.create.parameters.json"
-    outputDir="$scriptDir/deployment"
+    outputDir="$WORKING_DIR/azure-deployment"
     outputFileCreateBlob="rdp2blob.create-blob.output.json"
     outputFileAddSettings="rdp2blob.add-settings.output.json"
     outputFileZipDeploy="rdp2blob.zip-deploy.output.json"
@@ -92,8 +70,8 @@ rm -f $outputDir/$outputFileFuncAppInfo
     if [ "$dataLakeStorageConnectionString" == "null" ]; then echo ">>> ERR: reading $jsonPath from $outputDir/$outputFileCreateBlob"; echo; exit 1; fi
 
     # cross-check appsettings with template.app.settings.json
-    templateAppSettingsFile=$(assertFile "$releaseDir/template.app.settings.json") || exit
-    templateAppSettingsJSON=$(cat $templateAppSettingsFile | jq)
+    templateAppSettingsFile="$releaseDir/template.app.settings.json"
+    templateAppSettingsJSON=$(cat $templateAppSettingsFile | jq .)
       if [[ $? != 0 ]]; then echo " >>> ERR: file not found: $templateAppSettingsFile."; exit 1; fi
     jsonPath=".STORAGE_CONTAINER_NAME"
       val=$(echo $templateAppSettingsJSON | jq -r $jsonPath)

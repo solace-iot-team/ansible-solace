@@ -1,44 +1,14 @@
-#!/bin/bash
-# ---------------------------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2020, Solace Corporation, Ricardo Gomez-Ulmke (ricardo.gomez-ulmke@solace.com)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------------------------
+#!/usr/bin/env bash
 
-clear
 scriptDir=$(cd $(dirname "$0") && pwd);
-scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"))
-echo; echo "##############################################################################################################"
-echo "# Script: $scriptName"
-
-source $scriptDir/.lib/run.project-env.sh
 
 #####################################################################################
 # settings
 #
-    deploymentDir="$scriptDir/deployment"
-    resultsDir="$scriptDir/tmp"
-    resultsOutputFile="$resultsDir/events-sent.edge-broker.json"
-    connectionDetailsFile=$(assertFile "$deploymentDir/edge-broker.client_connection_details.json") || exit
-    connectionDetailsJSON=$(cat $connectionDetailsFile | jq)
+    WORKING_DIR="$scriptDir/tmp"
+    resultsOutputFile="$WORKING_DIR/events-sent.edge-broker.json"
+    connectionDetailsFile="$WORKING_DIR/edge-broker.client_connection_details.json"
+    connectionDetailsJSON=$(cat $connectionDetailsFile | jq . )
     isRestEnabled=$( echo $connectionDetailsJSON | jq -r '.clientConnectionDetails.REST.enabled' )
     if [ "$isRestEnabled" == "false" ]; then echo ">>> ERR: REST is not enabled on the edge broker"; exit 1; fi
     restUsername=$( echo $connectionDetailsJSON | jq -r '.clientConnectionDetails.REST.username' )
@@ -47,7 +17,7 @@ source $scriptDir/.lib/run.project-env.sh
 
 #####################################################################################
 # Prepare Dirs
-mkdir $resultsDir > /dev/null 2>&1
+mkdir $WORKING_DIR > /dev/null 2>&1
 rm -f $resultsOutputFile
 
 #####################################################################################
@@ -109,8 +79,5 @@ resultJSON='
     "numberMsgsSent": "'"$msgSentCounter"'"
 }
 '
-echo $resultJSON | jq > $resultsOutputFile
-cat $resultsOutputFile | jq
-echo
-echo
-# The End.
+echo $resultJSON | jq . > $resultsOutputFile
+cat $resultsOutputFile | jq .

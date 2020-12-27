@@ -1,0 +1,26 @@
+-
+  name: "Delete Solace Cloud Service"
+  hosts: localhost
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  pre_tasks:
+    - include_vars:
+        file: "solace-cloud-service.vars.yml"
+        name: sc_service
+  tasks:
+
+    - name: "Check vars"
+      assert:
+        that:
+          - sc_service is defined
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+
+    - name: "Delete Solace Cloud Service"
+      solace_cloud_service:
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        name: "{{ sc_service.name }}"
+        state: absent
