@@ -11,7 +11,7 @@ if [ -z "$PROJECT_HOME" ]; then echo ">>> ERROR: - $scriptLogName - missing env 
 ############################################################################################################################
 # Environment Variables
 
-  if [ -z "$SOLACE_CLOUD_API_TOKEN_ALL_PERMISSIONS" ]; then echo ">>> ERROR: - $scriptLogName - missing env var: SOLACE_CLOUD_API_TOKEN_ALL_PERMISSIONS"; exit 1; fi
+  if [ -z "$SOLACE_CLOUD_API_TOKEN" ]; then echo ">>> ERROR: - $scriptLogName - missing env var: SOLACE_CLOUD_API_TOKEN"; exit 1; fi
   if [ -z "$LOG_DIR" ]; then echo ">>> ERROR: - $scriptName - missing env var: LOG_DIR"; exit 1; fi
 
 ##############################################################################################################################
