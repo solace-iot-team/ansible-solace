@@ -72,11 +72,11 @@
     - name: "Download Certificate"
       get_url:
         url: "{{ sc_trust_store_uri }}"
-        dest: "{{ WORKING_DIR }}/edge-broker.pem"  
+        dest: "{{ WORKING_DIR }}/edge-broker.pem"
 
     - name: "Local Broker Setup"
       include_role:
-        name: solace.pubsub_plus.broker_service
+        name: solace.pubsub_plus.solace_broker_service
       vars:
         service_type: docker_single_node
         project_name: central-broker
