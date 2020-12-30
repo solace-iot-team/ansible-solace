@@ -5,8 +5,8 @@ on:
   # workflow_dispatch:
 
   schedule:
-    # - cron: '0 1 * * THU'
-    - cron: '0 1 * * *'
+    # - cron: '1 17 * * THU'
+    - cron: '1 17 * * *'
 
 env:
   TEST_TEST_RUNNER_SCRIPT: ".test-runner/run.integration.sh"
