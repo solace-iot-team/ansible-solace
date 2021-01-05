@@ -8,8 +8,11 @@ scriptLogName="$testProject.$scriptName"
 ############################################################################################################################
 # Prepare
 
-  if [ -z "$LOG_DIR" ]; then export LOG_DIR="$scriptDir/logs"; fi
-  mkdir -p $LOG_DIR; rm -rf $LOG_DIR/*
+  if [ -z "$LOG_DIR" ]; then
+    export LOG_DIR="$scriptDir/logs";
+    mkdir -p $LOG_DIR;
+    rm -rf $LOG_DIR/*
+  fi
 
 ##############################################################################################################################
 # Run

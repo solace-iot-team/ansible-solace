@@ -33,7 +33,7 @@ for testProject in ${testProjects[@]}; do
 
   runScript="$PROJECT_HOME/$testProject/.test/_run.sh"
 
-  $runScript > $LOG_DIR/_run.sh.out 2>&1
+  $runScript > "$LOG_DIR/_run.sh.out" 2>&1
 
   code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - code=$code - runScript='$runScript' - $scriptLogName"; exit 1; fi
 
