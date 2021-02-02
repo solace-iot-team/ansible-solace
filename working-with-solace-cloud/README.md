@@ -63,12 +63,7 @@ Delete the Solace Cloud Service: **ansible_solace_tutorial**.
 
 ````bash
   export SOLACE_CLOUD_API_TOKEN={the api token}
-  ./run.sc-delete.sh
-````
-
-The _client connection details_ for the new Solace Cloud service are created in the $WORKING_DIR:
-````bash
-  less ./tmp/solace-cloud.ansible_solace_tutorial.client_connection_details.yml
+  ./run.delete.sh
 ````
 
 ---

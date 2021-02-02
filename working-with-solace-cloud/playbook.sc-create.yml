@@ -33,17 +33,6 @@
 
     - set_fact:
         sc_service_id: "{{ result.response.serviceId }}"
-
-    - name: "Wait for Service Provisioning to Complete"
-      solace_cloud_get_service:
-        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
-        service_id: "{{ sc_service_id }}"
-      register: result
-      until: "result.rc != 0 or result.response.creationState == 'completed'"
-      retries: 40
-      delay: 60
-
-    - set_fact:
         sc_service_info: "{{ result.response }}"
 
     - name: "Get Solace Cloud Service Inventory"
