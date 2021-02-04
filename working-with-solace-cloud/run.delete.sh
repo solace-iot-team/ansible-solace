@@ -13,7 +13,7 @@ scriptDir=$(cd $(dirname "$0") && pwd);
 
 # enable logging
   export ANSIBLE_SOLACE_ENABLE_LOGGING=True
-  export ANSIBLE_SOLACE_LOG_PATH="$WORKING_DIR/ansible-solace.log"
+  if [ -z "$ANSIBLE_SOLACE_LOG_PATH" ]; then export ANSIBLE_SOLACE_LOG_PATH="$WORKING_DIR/ansible-solace.log"; fi
 
 # create solace cloud service
   ansible-playbook "$scriptDir/playbook.sc-delete.yml" --extra-vars "WORKING_DIR=$WORKING_DIR" --extra-vars "SOLACE_CLOUD_API_TOKEN=$SOLACE_CLOUD_API_TOKEN"

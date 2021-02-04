@@ -68,7 +68,7 @@ jobs:
           ./${TEST_TEST_RUNNER_SCRIPT}
 
       - name: Archive logs
-        if: ${{ always() && steps.auth.outputs.IS_AUTHORIZED != 'false' && github.event_name == 'workflow_dispatch' }}
+        if: ${{ (failure() && !cancelled()) || (always() && github.event_name == 'workflow_dispatch') }}
         uses: actions/upload-artifact@v2
         with:
           name: ${{ env.TEST_TEST_RUNNER_LOGS_NAME }}
