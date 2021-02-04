@@ -20,7 +20,7 @@
       username: "{{ sempv2_username }}"
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
-      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
       solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
     solace_client_profile:
       host: "{{ sempv2_host }}"
@@ -30,7 +30,7 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
-      solace_cloud_api_token: "{{ solace_cloud_api_token | default(omit) }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
       solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
     solace_acl_profile:
       host: "{{ sempv2_host }}"
@@ -72,7 +72,7 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
-    solace_bridge_tls_cn:
+    solace_bridge_trusted_cn:
       host: "{{ sempv2_host }}"
       port: "{{ sempv2_port }}"
       secure_connection: "{{ sempv2_is_secure_connection }}"
@@ -104,6 +104,15 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       msg_vpn: "{{ vpn }}"
+    solace_cert_authority:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
   pre_tasks:
     - include_vars:
         file: "bridge.vars.yml"
@@ -116,11 +125,14 @@
           - WORKING_DIR is defined
         fail_msg: "one or more variables not defined"
 
+    - set_fact:
+
+
     - name: "Gather Solace Facts"
       solace_gather_facts:
       register: result
-      no_log: true
-      ignore_errors: true
+      # no_log: true
+      # ignore_errors: true
 
     # Prepare the central-broker:
     # - upload the solace-cloud certificate
@@ -129,7 +141,8 @@
     - name: "Upload Solace Cloud Certificate to Central-Broker"
       solace_cert_authority:
         name: "{{ bridge.short_name }}"
-        cert_content: "{{ lookup('file', pem_file) }}"
+        settings:
+          certContent: "{{ lookup('file', pem_file) }}"
         state: present
       when: inventory_hostname == "central-broker"
 
@@ -210,7 +223,7 @@
         state: present
 
     - name: "Bridge: Trusted Common Name"
-      solace_bridge_tls_cn:
+      solace_bridge_trusted_cn:
         name: "*.messaging.solace.cloud"
         bridge_name: "{{ bridge.name }}"
         virtual_router: auto
@@ -220,7 +233,6 @@
       solace_get_facts:
         hostvars: "{{ hostvars }}"
         host: "{{ bridge.hosts[inventory_hostname].remote_host }}"
-        fields:
         field_funcs:
           - get_bridge_remoteMsgVpnLocations
       register: bridge_remote_msg_vpn_locations

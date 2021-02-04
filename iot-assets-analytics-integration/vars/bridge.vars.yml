@@ -1,7 +1,7 @@
 ---
     name: as-iot-assets-bridge-edge-to-central
     # client profile name has a max of 32 chars, so re-define the name here
-    short_name: as-iot-bridge-e-2-c
+    short_name: as_iot_bridge_e2c
     # topic pattern: {domain}/{asset-type-id}/{asset-id}/{region-id}/{data-type-id}
     # Note: this could also be a list to iterate over
     # subscr_topic: "as-iot-assets/asset-type-a/*/us/stream-metrics"
