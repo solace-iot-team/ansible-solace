@@ -4,7 +4,7 @@
   gather_facts: no
   any_errors_fatal: true
   tasks:
-    - name: ensure working_dir exists
+    - name: ensure WORKING_DIR exists
       file:
         path: "{{ WORKING_DIR }}"
         state: directory

@@ -21,7 +21,7 @@
       password: "{{ sempv2_password }}"
       timeout: "{{ sempv2_timeout }}"
       solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
-      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"      
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
     solace_queue:
       host: "{{ sempv2_host }}"
       port: "{{ sempv2_port }}"
@@ -107,6 +107,11 @@
           - WORKING_DIR is defined
         fail_msg: "one or more variables not defined"
 
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+        
     - name: Check if real or dummy settings for azure function
       stat:
         path: "{{ WORKING_DIR }}/azure-deployment/settings.az-func.json"

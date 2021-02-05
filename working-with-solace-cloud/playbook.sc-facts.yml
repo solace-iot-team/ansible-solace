@@ -24,6 +24,11 @@
           - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
         fail_msg: "one or more variables not defined"
 
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+
     - name: "Gather Solace Facts"
       solace_gather_facts:
         solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"

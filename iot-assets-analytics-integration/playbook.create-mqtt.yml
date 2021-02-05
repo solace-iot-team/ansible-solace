@@ -81,6 +81,11 @@
         name: mqtt
   tasks:
 
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+        
     - name: Gather Solace Facts
       solace_gather_facts:
 

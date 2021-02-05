@@ -18,6 +18,11 @@
           - WORKING_DIR is defined
         fail_msg: "one or more variables not defined"
 
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+
     - name: "Create Solace Cloud Service"
       solace_cloud_service:
         api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"

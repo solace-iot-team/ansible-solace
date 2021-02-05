@@ -125,8 +125,10 @@
           - WORKING_DIR is defined
         fail_msg: "one or more variables not defined"
 
-    - set_fact:
-
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
 
     - name: "Gather Solace Facts"
       solace_gather_facts:

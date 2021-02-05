@@ -10,7 +10,7 @@ on:
 
 env:
   TEST_TEST_RUNNER_SCRIPT: ".test-runner/run.integration.sh"
-  TEST_TEST_RUNNER_LOGS_NAME: test-runner-integration-logs
+  TEST_TEST_RUNNER_LOGS_NAME: ansible-solace-test-integration-logs
   TEST_RUNNER_LOGS_DIR: integration-logs
 
 jobs:
