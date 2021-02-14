@@ -234,9 +234,9 @@
     - name: "Bridge: Get Remote Host Bridge Facts"
       solace_get_facts:
         hostvars: "{{ hostvars }}"
-        host: "{{ bridge.hosts[inventory_hostname].remote_host }}"
-        field_funcs:
-          - get_bridge_remoteMsgVpnLocations
+        hostvars_inventory_hostname: "{{ bridge.hosts[inventory_hostname].remote_host }}"
+        get_functions:
+          - get_vpnBridgeRemoteMsgVpnLocations
       register: bridge_remote_msg_vpn_locations
 
     - name: "Bridge: Save Bridge Remote VPN Locations Facts to File"
@@ -253,7 +253,7 @@
         remote_msg_vpn_name: "{{ bridge.hosts[inventory_hostname].remote_vpn }}"
         # choose the correct remote location depending on settings.tlsEnabled and settings.compressedDataEnabled
         # see ./tmp/facts.{broker}.bridge-remote-vpn-locations.json
-        remote_vpn_location: "{{ bridge_remote_msg_vpn_locations.facts.bridge_remoteMsgVpnLocations.secured }}"
+        remote_vpn_location: "{{ bridge_remote_msg_vpn_locations.facts.vpnBridgeRemoteMsgVpnLocations.secured }}"
         settings:
           enabled: true
           tlsEnabled: true
@@ -286,7 +286,7 @@
       # it takes a bit of time to establish the connection
       # don't fail immediately
       until:
-        - bridge_remote_vpn_monitor_list.result_list[0].up
+        - bridge_remote_vpn_monitor_list.result_list[0].data.up
       retries: 3
       delay: 2
       ignore_errors: yes
@@ -298,7 +298,7 @@
           - "ERROR: Bridge Remote VPN not up."
           - "remote vpn info:"
           - "{{ bridge_remote_vpn_monitor_list.result_list[0] }}"
-      when: bridge_remote_vpn_monitor_list.result_list[0].up == false
+      when: bridge_remote_vpn_monitor_list.result_list[0].data.up == false
 
     - name: "Bridge: Check & Retry is UP"
       solace_get_bridges:
@@ -312,8 +312,8 @@
             - outboundState
       register: result
       until:
-        - result.result_list[0].inboundState == 'ready-in-sync'
-        - result.result_list[0].outboundState == 'ready'
+        - result.result_list[0].data.inboundState == 'ready-in-sync'
+        - result.result_list[0].data.outboundState == 'ready'
       retries: 3
       delay: 2
       ignore_errors: yes
@@ -322,12 +322,12 @@
       fail:
         msg:
           - "ERROR: bridge not up."
-          - "inboundState: {{ result.result_list[0].inboundState }}"
-          - "inboundFailureReason: {{ result.result_list[0].inboundFailureReason | default('') }}"
-          - "outboundState: {{ result.result_list[0].outboundState | default('') }}"
+          - "inboundState: {{ result.result_list[0].data.inboundState }}"
+          - "inboundFailureReason: {{ result.result_list[0].data.inboundFailureReason | default('') }}"
+          - "outboundState: {{ result.result_list[0].data.outboundState | default('') }}"
       when: >
-        result.result_list[0].inboundState != 'ready-in-sync' or
-        result.result_list[0].outboundState != 'ready'
+        result.result_list[0].data.inboundState != 'ready-in-sync' or
+        result.result_list[0].data.outboundState != 'ready'
 
 
 ###

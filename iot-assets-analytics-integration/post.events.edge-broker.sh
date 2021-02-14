@@ -11,9 +11,9 @@ scriptDir=$(cd $(dirname "$0") && pwd);
     connectionDetailsJSON=$(cat $connectionDetailsFile | jq . )
     isRestEnabled=$( echo $connectionDetailsJSON | jq -r '.clientConnectionDetails.REST.enabled' )
     if [ "$isRestEnabled" == "false" ]; then echo ">>> ERR: REST is not enabled on the edge broker"; exit 1; fi
-    restUsername=$( echo $connectionDetailsJSON | jq -r '.clientConnectionDetails.REST.username' )
-    restPassword=$( echo $connectionDetailsJSON | jq -r '.clientConnectionDetails.REST.password' )
-    restPlainUri=$( echo $connectionDetailsJSON | jq -r '.clientConnectionDetails.REST.endPoints[] | select(.transport == "HTTP").uris[0]')
+    restUsername=$( echo $connectionDetailsJSON | jq -r '.vpnClientConnectionDetails.REST.authentication.username' )
+    restPassword=$( echo $connectionDetailsJSON | jq -r '.vpnClientConnectionDetails.REST.authentication.password' )
+    restPlainUri=$( echo $connectionDetailsJSON | jq -r '.vpnClientConnectionDetails.REST.plain.uri')
 
 #####################################################################################
 # Prepare Dirs
