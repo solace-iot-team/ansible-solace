@@ -85,7 +85,7 @@
       file:
         path: "{{ WORKING_DIR }}"
         state: directory
-        
+
     - name: Gather Solace Facts
       solace_gather_facts:
 
@@ -161,9 +161,9 @@
     - name: "Get Facts: all client connection details"
       solace_get_facts:
         hostvars: "{{ hostvars }}"
-        host: "{{ inventory_hostname }}"
-        field_funcs:
-          - get_allClientConnectionDetails
+        hostvars_inventory_hostname: "{{ inventory_hostname }}"
+        get_functions:
+          - get_vpnClientConnectionDetails
       register: result
 
     - set_fact:
