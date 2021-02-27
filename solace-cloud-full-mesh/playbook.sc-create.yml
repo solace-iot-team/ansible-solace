@@ -18,6 +18,8 @@
       file:
         path: "{{ WORKING_DIR }}"
         state: directory
+    # note: deletes all files matching the pattern
+    # even if not in the inventory - caters for changes in inventory
     - name: delete existing inventory files
       find:
         paths: "{{ WORKING_DIR }}"
