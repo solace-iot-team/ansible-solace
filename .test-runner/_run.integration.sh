@@ -22,6 +22,7 @@ testProjects=(
   "working-with-solace-cloud"
   "working-with-users-and-acls"
   "iot-assets-analytics-integration"
+  "solace-cloud-full-mesh"
 )
 
 for testProject in ${testProjects[@]}; do
