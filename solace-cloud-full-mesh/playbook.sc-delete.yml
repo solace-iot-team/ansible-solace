@@ -1,0 +1,34 @@
+-
+  name: Solace Cloud Delete Services Playbook
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  tasks:
+    - name: "check vars"
+      assert:
+        that:
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+    - set_fact:
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        working_dir: "{{ WORKING_DIR }}"
+        sc_service_name: "{{ inventory_hostname }}"
+    - set_fact:
+        sc_service_inventory_file: "{{ working_dir }}/solace-cloud.{{ sc_service_name }}.inventory.yml"
+
+    - name: "Delete Solace Cloud Service"
+      solace_cloud_service:
+        api_token: "{{ api_token }}"
+        name: "{{ sc_service_name }}"
+        state: absent
+
+    - name: "Delete Service Inventory File"
+      file:
+        path: "{{ sc_service_inventory_file }}"
+        state: absent
+
+###
+# The End.

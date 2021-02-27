@@ -1,0 +1,95 @@
+-
+  name: Solace Cloud Create Services Playbook
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  tasks:
+    - name: "check vars"
+      assert:
+        that:
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+    - name: set common facts
+      set_fact:
+        settings: "{{ settings | combine(common_settings) }}"
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        working_dir: "{{ WORKING_DIR }}"
+        account_name: "the_solace_cloud_account"
+
+    - name: "Create Solace Cloud Service"
+      solace_cloud_service:
+        api_token: "{{ api_token }}"
+        name: "{{ inventory_hostname }}"
+        settings: "{{ settings }}"
+        state: present
+      register: result
+    - set_fact:
+        sc_service_id: "{{ result.response.serviceId }}"
+        sc_service_info: "{{ result.response }}"
+
+    - name: "Get Solace Cloud Service Inventory"
+      solace_cloud_get_facts:
+        from_dict: "{{ sc_service_info }}"
+        get_formattedHostInventory:
+          host_entry: "{{ inventory_hostname }}"
+          api_token: "{{ api_token }}"
+          meta:
+            service_name: "{{ sc_service_info.name }}"
+            sc_service_id: "{{ sc_service_info.serviceId }}"
+            datacenterId: "{{ sc_service_info.datacenterId }}"
+            serviceTypeId: "{{ sc_service_info.serviceTypeId}}"
+            serviceClassId: "{{ sc_service_info.serviceClassId }}"
+            serviceClassDisplayedAttributes: "{{ sc_service_info.serviceClassDisplayedAttributes }}"
+      register: result
+    - set_fact:
+        sc_service_inventory: "{{ result.facts.formattedHostInventory }}"
+        sc_service_vars: "{{ result.facts.formattedHostInventory.all.hosts[inventory_hostname] }}"
+    - name: "Save Solace Cloud Service Inventory to File"
+      copy:
+        content: "{{ sc_service_inventory | to_nice_yaml }}"
+        dest: "{{ WORKING_DIR }}/solace-cloud.{{ sc_service_info.name }}.inventory.yml"
+      changed_when: false
+    - name: "Save new Solace Cloud service info"
+      copy:
+        content: "{{ sc_service_info | to_nice_yaml }}"
+        dest: "{{ WORKING_DIR }}/solace-cloud.{{ sc_service_info.name }}.info.yml"
+      changed_when: false
+
+    - name: "gather service facts"
+      solace_gather_facts:
+        host: "{{ sc_service_vars.sempv2_host }}"
+        port: "{{ sc_service_vars.sempv2_port }}"
+        secure_connection: "{{ sc_service_vars.sempv2_is_secure_connection }}"
+        username: "{{ sc_service_vars.sempv2_username }}"
+        password: "{{ sc_service_vars.sempv2_password }}"
+        timeout: "{{ sc_service_vars.sempv2_timeout }}"
+        solace_cloud_api_token: "{{ api_token if sc_service_vars.broker_type=='solace_cloud' else omit }}"
+        solace_cloud_service_id: "{{ sc_service_info.serviceId if sc_service_vars.broker_type=='solace_cloud' else omit }}"
+
+    - name: "check connection details"
+      solace_get_facts:
+        hostvars: "{{ hostvars }}" # always use this setting
+        hostvars_inventory_hostname: "{{ inventory_hostname }}"
+        msg_vpn: "{{ sc_service_vars.vpn }}"
+        get_functions:
+          - get_vpnClientConnectionDetails
+      register: result
+    - set_fact:
+        vpn_connection_details: "{{ result.facts.vpnClientConnectionDetails }}"
+    - assert:
+        that:
+          - vpn_connection_details.SMF.enabled
+          - vpn_connection_details.REST.enabled
+        fail_msg: "SMF & REST must be enabled on the service {{ inventory_hostname }}"
+    - assert:
+        that:
+          - vpn_connection_details.SMF.secured is defined and vpn_connection_details.SMF.secured.enabled
+          - vpn_connection_details.REST.plain is defined and vpn_connection_details.REST.plain.enabled
+        fail_msg: "SMF secured & REST plain must be enabled on the service {{ inventory_hostname }}"
