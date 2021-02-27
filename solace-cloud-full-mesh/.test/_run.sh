@@ -20,6 +20,10 @@ scriptLogName="$testProject.$scriptName"
   export ANSIBLE_SOLACE_LOG_PATH="$LOG_DIR/$scriptLogName.ansible-solace.log"
   export ANSIBLE_LOG_PATH="$LOG_DIR/$scriptLogName.ansible.log"
 
+  runScript="$scriptDir/../run.get.solace-cloud.datacenters.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
   runScript="$scriptDir/../run.create.solace-cloud.services.sh"
   $runScript
   code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi

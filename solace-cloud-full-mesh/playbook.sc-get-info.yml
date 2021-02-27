@@ -1,10 +1,12 @@
 -
   name: Solace Cloud Get Info Playbook
-  hosts: all
+  hosts: localhost
   gather_facts: no
   any_errors_fatal: true
   collections:
     - solace.pubsub_plus
+  vars:
+    account_name: "solace_cloud_account"
   tasks:
     - name: "Check vars"
       assert:
@@ -22,7 +24,7 @@
       set_fact:
         api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
         working_dir: "{{ WORKING_DIR }}"
-        account_name: "the_solace_cloud_account"
+
 
     - name: "Solace Cloud Account: Gather Facts as Dict"
       solace_cloud_account_gather_facts:

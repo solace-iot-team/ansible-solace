@@ -3,6 +3,8 @@ all:
   # the services created in Solace Cloud
   # with specific settings
   # add / remove services as required
+  # other datacenters:
+  #   - US East (N. Virginia): aws-us-east-1b        
   hosts:
     ansible_solace_mesh_node_1:
       ansible_connection: local

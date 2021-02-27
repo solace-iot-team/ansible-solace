@@ -4,7 +4,7 @@ Creates a full mesh using DMR external links between all the services specified.
 
 requires at least 2 services, either pre-existing or created here.
 
- 
+
 ## Run the Tutorial
 
 ### Environment
@@ -19,7 +19,9 @@ export SOLACE_CLOUD_API_TOKEN={the api token}
 ### Get List of Solace Cloud Service Data Centers
 
 ````bash
-TODO
+./run.get.solace-cloud.datacenters.sh
+# output:
+cat tmp/solace-cloud.data_centers.yml
 ````
 
 ### Create Solace Cloud Services
