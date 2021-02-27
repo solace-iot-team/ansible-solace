@@ -5,6 +5,8 @@
   any_errors_fatal: true
   collections:
     - solace.pubsub_plus
+  vars:
+    service_inventory_file_pattern: "solace-cloud.*.inventory.yml"
   tasks:
     - name: "check vars"
       assert:
@@ -16,6 +18,16 @@
       file:
         path: "{{ WORKING_DIR }}"
         state: directory
+    - name: delete existing inventory files
+      find:
+        paths: "{{ WORKING_DIR }}"
+        patterns: "{{ service_inventory_file_pattern }}"
+      register: result
+    - file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ result.files }}"
+
     - name: set common facts
       set_fact:
         settings: "{{ common_settings | combine(settings) }}"

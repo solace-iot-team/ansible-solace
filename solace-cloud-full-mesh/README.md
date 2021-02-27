@@ -1,6 +1,6 @@
 # Solace Cloud Full Mesh
 
-Creates a full mesh between Solace Cloud services using DMR external links.
+Create a full mesh between Solace Cloud services using DMR external links.
 
 Requires at least 2 services, either pre-existing or created automatically.
 
