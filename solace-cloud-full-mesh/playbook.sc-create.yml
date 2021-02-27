@@ -18,7 +18,7 @@
         state: directory
     - name: set common facts
       set_fact:
-        settings: "{{ settings | combine(common_settings) }}"
+        settings: "{{ common_settings | combine(settings) }}"
         api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
         working_dir: "{{ WORKING_DIR }}"
         account_name: "the_solace_cloud_account"

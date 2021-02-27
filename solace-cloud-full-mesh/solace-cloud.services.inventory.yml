@@ -4,7 +4,8 @@ all:
   # with specific settings
   # add / remove services as required
   # other datacenters:
-  #   - US East (N. Virginia): aws-us-east-1b        
+  #   - US East (N. Virginia): aws-us-east-1b
+  #   - US West (N. Calfornia): aws-us-west-1a
   hosts:
     ansible_solace_mesh_node_1:
       ansible_connection: local
@@ -18,6 +19,10 @@ all:
       ansible_connection: local
       settings:
         datacenterId: "aws-ap-southeast-1a"
+    # ansible_solace_mesh_node_4:
+    #   ansible_connection: local
+    #   settings:
+    #     datacenterId: "aws-us-east-1b"
   vars:
     # common settings for creation of Solace Cloud services
     common_settings:

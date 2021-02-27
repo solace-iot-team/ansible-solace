@@ -1,8 +1,8 @@
-# Tutorial: Working with DMR Cluster
+# Solace Cloud Full Mesh
 
-Creates a full mesh using DMR external links between all the services specified.
+Creates a full mesh between Solace Cloud services using DMR external links.
 
-requires at least 2 services, either pre-existing or created here.
+Requires at least 2 services, either pre-existing or created automatically.
 
 
 ## Run the Tutorial
@@ -16,7 +16,64 @@ export SOLACE_CLOUD_API_TOKEN={the api token}
 
 * **WORKING_DIR:** default: `./tmp`
 
+### Inventory File
+
+The inventory file only requires entries for the Solace Cloud services (their names) and their settings.
+Add or adjust hosts (service names) and their location as required.
+
+If you have existing services, enter their names in the inventory file.
+
+Note that the ansible playbooks will combine the `settings` of the host with the `common_settings` in the vars to create the final set of settings for each service. The host `settings` override the `common_settings`.
+
+Note the enabled services:
+- SMF for the DMR links
+- REST for automated testing
+
+Example:
+````yaml
+---
+all:
+  # the services created in Solace Cloud
+  # with specific settings
+  # add / remove services as required
+  hosts:
+    ansible_solace_mesh_node_1:
+      ansible_connection: local
+      settings:
+        datacenterId: "aws-ca-central-1a"
+    ansible_solace_mesh_node_2:
+      ansible_connection: local
+      settings:
+        datacenterId: "aws-eu-central-1a"
+    ansible_solace_mesh_node_3:
+      ansible_connection: local
+      settings:
+        datacenterId: "aws-ap-southeast-1a"
+  vars:
+    # common settings for creation of Solace Cloud services
+    common_settings:
+      serviceTypeId: "enterprise"
+      serviceClassId: "enterprise-250-nano"
+      attributes:
+        customizedMessagingPorts:
+          serviceSmfPlainTextListenPort: 55555
+          serviceSmfCompressedListenPort: 55003
+          serviceSmfTlsListenPort: 55443
+          serviceAmqpPlainTextListenPort: 0
+          serviceAmqpTlsListenPort: 0
+          serviceMqttPlainTextListenPort: 0
+          serviceMqttTlsListenPort: 0
+          serviceMqttTlsWebSocketListenPort: 0
+          serviceMqttWebSocketListenPort: 0
+          serviceRestIncomingPlainTextListenPort: 9000
+          serviceRestIncomingTlsListenPort: 9443
+          serviceWebPlainTextListenPort: 0
+          serviceWebTlsListenPort: 0
+````
+
 ### Get List of Solace Cloud Service Data Centers
+
+Retrieves a list of available data centers in your Solace Cloud subscription.
 
 ````bash
 ./run.get.solace-cloud.datacenters.sh
@@ -26,14 +83,11 @@ cat tmp/solace-cloud.data_centers.yml
 
 ### Create Solace Cloud Services
 
-Note: if you already have services, update the host entries in the inventory.
-example: TODO
-
-List of services & service settings:
+Change service names and settings as per requirements.
 ````bash
 cat solace-cloud.services.inventory.yml
-# change settings, service names, data centers
-# as per your requirements
+# change settings, service names, data centers as per requirements
+vi solace-cloud.services.inventory.yml
 ````
 
 Create the services:
@@ -46,61 +100,20 @@ $WORKING_DIR/solace-cloud.{service-name}.info.yml
 
 ### Create the DMR Cluster
 
-- creates a full mesh between all services as defined in: TODO
+Create the full mesh between all services as defined in the inventory.
 
 ````bash
-# input:
-
-# run:
 ./run.create.full-mesh-dmr-cluster.sh
-
-# output:
 ````
+
+### Test the Full Mesh
+
+TODO
 
 ### Delete Solace Cloud Services
 
 ````bash
-./run.create.solace-cloud.services.sh
+./run.delete.solace-cloud.services.sh
 ````
 
-TODO
-
-
-
-------------------------------------
-
-
-
-Creates VPN, queues and subscriptions based on a variables file.
-
-## Details
-
-When running the tutorial, the following sequence is executed:
-
-- start a local broker service in docker: `service.playbook.yml`
-  - uses the latest Solace PubSub+ Standard Edition image
-- create a VPN called `foo`
-- configure the queues & subscriptions: `configure.playbook.yml`
-  - queue definitions: `vars/queues.vars.yml`
-  - loops over queues using task: `tasks/queues.tasks.yml`
-- prompt to inspect queues in broker console
-  ````bash
-  - browser: open a new incognito window
-  - http://localhost:8080
-  - login: admin / admin
-  - vpn: foo
-  ````
-- delete queues
-- delete vpn
-
-## Run the tutorial
-
-### Prerequisites
-````bash
-pip install docker-compose
-````
-### Run
-````bash
-./run.sh
-````
 ---
