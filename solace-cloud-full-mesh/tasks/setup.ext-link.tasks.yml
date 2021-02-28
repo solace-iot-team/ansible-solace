@@ -1,0 +1,69 @@
+---
+- name: "setup.ext-link.tasks: check vars"
+  assert:
+    that:
+      - remote_host_name is defined
+      - dmr_cluster_name is defined
+    fail_msg: "one or more variables not defined"
+
+- name: "setup.ext-link.tasks: solace_get_facts: get_dmrClusterConnectionDetails & get_msgVpnAttributes"
+  solace_get_facts:
+    hostvars: "{{ hostvars }}"
+    hostvars_inventory_hostname: "{{ remote_host_name }}"
+    get_functions:
+      - get_serviceDmrClusterConnectionDetails
+      - get_vpnAttributes
+  register: result
+
+- set_fact:
+    result_facts: "{{ result.facts }}"
+
+- set_fact:
+    remote_address: "{{ result.facts.serviceDmrClusterConnectionDetails.remoteAddress }}"
+    remote_password: "{{ result.facts.serviceDmrClusterConnectionDetails.password }}"
+    remote_node_name: "{{ result.facts.serviceDmrClusterConnectionDetails.primaryRouterName }}"
+    remote_msg_vpn_name: "{{ result.facts.vpnAttributes.msgVpn }}"
+
+- name: "setup.ext-link.tasks: solace_dmr_cluster_link: create external link"
+  solace_dmr_cluster_link:
+    remote_node_name: "{{ remote_node_name }}"
+    dmr_cluster_name: "{{ dmr_cluster_name }}"
+    settings:
+      enabled: false
+      span: external
+      authenticationScheme: basic
+      authenticationBasicPassword: "{{ remote_password }}"
+    state: present
+
+- name: "setup.ext-link.tasks: solace_dmr_cluster_link_remote_address: add"
+  solace_dmr_cluster_link_remote_address:
+    remote_address: "{{ remote_address }}"
+    remote_node_name: "{{ remote_node_name }}"
+    dmr_cluster_name: "{{ dmr_cluster_name }}"
+    state: present
+
+- name: "setup.ext-link.tasks: solace_dmr_cluster_link_trusted_cn: add"
+  solace_dmr_cluster_link_trusted_cn:
+    name: "{{ dmr_cluster_link_trusted_cn }}"
+    remote_node_name: "{{ remote_node_name }}"
+    dmr_cluster_name: "{{ dmr_cluster_name }}"
+    state: present
+
+- name: "setup.ext-link.tasks: solace_dmr_bridge: create"
+  solace_dmr_bridge:
+    remote_node_name: "{{ remote_node_name }}"
+    settings:
+      remoteMsgVpnName: "{{ remote_msg_vpn_name }}"
+    state: present
+
+- name: "setup.ext-link.tasks: solace_dmr_cluster_link: enable"
+  solace_dmr_cluster_link:
+    remote_node_name: "{{ remote_node_name }}"
+    dmr_cluster_name: "{{ dmr_cluster_name }}"
+    settings:
+      enabled: true
+    state: present
+
+
+###
+# The End.

@@ -1,0 +1,149 @@
+
+-
+  name: Create Full Mesh DMR Cluster Playbook
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_dmr_cluster:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+    solace_get_dmr_cluster_links:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+    solace_dmr_cluster_link:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+    solace_dmr_cluster_link_remote_address:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+    solace_dmr_cluster_link_trusted_cn:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+    solace_get_dmr_bridges:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_dmr_bridge:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+  vars:
+    # TODO: extract this for each host from remote node host FQN 
+      dmr_cluster_link_trusted_cn: "*.messaging.solace.cloud"
+      dmr_ext_links_remote_host_names: []
+  tasks:
+    - name: "check vars"
+      assert:
+        that:
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+
+    - name: set common facts
+      set_fact:
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        working_dir: "{{ WORKING_DIR }}"
+
+    - name: create list of remote host names
+      set_fact:
+        dmr_ext_links_remote_host_names: "{{ dmr_ext_links_remote_host_names + [item.key] }}"
+      when: item.key != inventory_hostname
+      loop: "{{ hostvars | dict2items }}"
+
+    - assert:
+        that:
+          - dmr_ext_links_remote_host_names | length >= 1
+        fail_msg: must specify at least 2 services to create a dmr link
+
+    - name: gather service facts
+      solace_gather_facts:
+    - name: "solace_get_facts: get_serviceDmrClusterConnectionDetails"
+      solace_get_facts:
+        hostvars: "{{ hostvars }}"
+        hostvars_inventory_hostname: "{{ inventory_hostname }}"
+        msg_vpn: "{{ vpn }}"
+        get_functions:
+          - get_serviceDmrClusterConnectionDetails
+      register: result
+    - set_fact:
+        dmr_cluster_connection_details: "{{ result.facts.serviceDmrClusterConnectionDetails }}"
+    - set_fact:
+        dmr_cluster_name: "{{ dmr_cluster_connection_details.clusterName }}"
+        dmr_cluster_password: "{{ dmr_cluster_connection_details.password }}"
+
+    # in Solace Cloud, the cluster should already exist
+    - name: create dmr cluster
+      solace_dmr_cluster:
+        name: "{{ dmr_cluster_name }}"
+      register: result
+
+    - name: get a list of links
+      solace_get_dmr_cluster_links:
+        dmr_cluster_name: "{{ dmr_cluster_name }}"
+      register: result
+
+    - name: delete all existing links
+      solace_dmr_cluster_link:
+        remote_node_name: "{{ item.data.remoteNodeName }}"
+        dmr_cluster_name: "{{ dmr_cluster_name }}"
+        state: absent
+      loop: "{{ result.result_list }}"
+
+    - name: "call setup ext-link tasks"
+      include_tasks: ./tasks/setup.ext-link.tasks.yml
+      loop: "{{ dmr_ext_links_remote_host_names }}"
+      loop_control:
+        loop_var: remote_host_name
+
+    - name: check external links are up
+      include_tasks: ./tasks/check.ext-link.tasks.yml
+      loop: "{{ dmr_ext_links_remote_host_names }}"
+      loop_control:
+        loop_var: remote_host_name
+
+###
+# The End.

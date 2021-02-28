@@ -1,0 +1,104 @@
+
+-
+  name: Create Full Mesh DMR Cluster Playbook
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_get_dmr_cluster_links:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+    solace_dmr_cluster_link:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+    solace_get_dmr_bridges:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_dmr_bridge:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+  tasks:
+    - name: "check vars"
+      assert:
+        that:
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+
+    - name: set common facts
+      set_fact:
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        working_dir: "{{ WORKING_DIR }}"
+
+    - name: gather service facts
+      solace_gather_facts:
+    - name: "solace_get_facts: get_serviceDmrClusterConnectionDetails"
+      solace_get_facts:
+        hostvars: "{{ hostvars }}"
+        hostvars_inventory_hostname: "{{ inventory_hostname }}"
+        msg_vpn: "{{ vpn }}"
+        get_functions:
+          - get_serviceDmrClusterConnectionDetails
+      register: result
+    - set_fact:
+        dmr_cluster_connection_details: "{{ result.facts.serviceDmrClusterConnectionDetails }}"
+    - set_fact:
+        dmr_cluster_name: "{{ dmr_cluster_connection_details.clusterName }}"
+
+    - name: get a list of dmr bridges
+      solace_get_dmr_bridges:
+      register: result_bridges
+
+    - name: delete dmr bridges
+      solace_dmr_bridge:
+        remote_node_name: "{{ item.data.remoteNodeName }}"
+        state: absent
+      loop: "{{ result_bridges.result_list }}"
+
+    - name: get a list of links
+      solace_get_dmr_cluster_links:
+        dmr_cluster_name: "{{ dmr_cluster_name }}"
+      register: result_links
+
+    - name: delete cluster links
+      solace_dmr_cluster_link:
+        remote_node_name: "{{ item.data.remoteNodeName }}"
+        dmr_cluster_name: "{{ dmr_cluster_name }}"
+        state: absent
+      loop: "{{ result_links.result_list }}"
+
+###
+# The End.

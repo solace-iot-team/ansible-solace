@@ -1,0 +1,62 @@
+
+---
+- name: "check.ext-link.tasks: check vars"
+  assert:
+    that:
+      - remote_host_name is defined
+      - dmr_cluster_name is defined
+    fail_msg: "one or more variables not defined"
+
+- name: "check.ext-link.tasks: solace_get_facts: get_dmrClusterConnectionDetails & get_msgVpnAttributes"
+  solace_get_facts:
+    hostvars: "{{ hostvars }}"
+    hostvars_inventory_hostname: "{{ remote_host_name }}"
+    get_functions:
+      - get_serviceDmrClusterConnectionDetails
+      - get_vpnAttributes
+  register: result
+- set_fact:
+    remote_address: "{{ result.facts.serviceDmrClusterConnectionDetails.remoteAddress }}"
+    remote_node_name: "{{ result.facts.serviceDmrClusterConnectionDetails.primaryRouterName }}"
+    remote_msg_vpn_name: "{{ result.facts.vpnAttributes.msgVpn }}"
+
+- name: "check.ext-link.tasks: solace_get_dmr_cluster_links {{ inventory_hostname }} - check if up"
+  solace_get_dmr_cluster_links:
+    api: monitor
+    dmr_cluster_name: "{{ dmr_cluster_name }}"
+    query_params:
+      where:
+        - "remoteNodeName=={{ remote_node_name }}"
+  register: result
+  ignore_errors: yes
+  until:
+    - result.result_list_count==1 and result.result_list[0].data.up
+  retries: 10
+  delay: 10
+- assert:
+    that:
+      - result.result_list_count == 1
+      - result.result_list[0].data.up
+    fail_msg: "dmr external link not up - from {{ inventory_hostname}} to {{ remote_host_name }}"
+
+- name: "check.ext-link.tasks: solace_get_dmr_bridges: monitor"
+  solace_get_dmr_bridges:
+    api: monitor
+    query_params:
+      where:
+        - "remoteNodeName=={{ remote_node_name }}"
+        - "remoteMsgVpnName=={{ remote_msg_vpn_name }}"
+  register: result
+  ignore_errors: yes
+  until:
+    - result.result_list_count==1 and result.result_list[0].data.up
+  retries: 10
+  delay: 10
+- assert:
+    that:
+      - result.result_list_count == 1
+      - result.result_list[0].data.up
+    fail_msg: "dmr external link not up - from {{ inventory_hostname}} to {{ remote_host_name }}"
+
+###
+# The End.

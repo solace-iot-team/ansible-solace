@@ -1,0 +1,37 @@
+---
+- name: "send-messages.tasks: check vars"
+  assert:
+    that:
+      - num_messages_to_send is defined
+    fail_msg: "one or more variables not defined"
+
+- name: gather solace facts
+  solace_gather_facts:
+
+- name: get client connection details
+  solace_get_facts:
+    hostvars: "{{ hostvars }}"
+    hostvars_inventory_hostname: "{{ inventory_hostname }}"
+    msg_vpn: "{{ vpn }}"
+    get_functions:
+      - get_vpnClientConnectionDetails
+  register: result
+- set_fact:
+    rest_connection_details: "{{ result.facts.vpnClientConnectionDetails.REST }}"
+- assert:
+    that:
+      - rest_connection_details.enabled
+      - rest_connection_details.plain is defined and rest_connection_details.plain.enabled
+- set_fact:
+    rest_base_url: "{{ rest_connection_details.plain.uri }}"
+    rest_usr: "{{ rest_connection_details.authentication.username }}"
+    rest_pwd: "{{ rest_connection_details.authentication.password }}"
+
+- name: "call send message tasks"
+  include_tasks: ./send-message.tasks.yml
+  loop: "{{ range(0, num_messages_to_send, 1) | list }}"
+  loop_control:
+    loop_var: message_number
+
+###
+# The End.

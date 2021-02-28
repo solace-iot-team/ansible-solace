@@ -1,0 +1,41 @@
+-
+  name: Solace Cloud Get Info Playbook
+  hosts: localhost
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  vars:
+    account_name: "solace_cloud_account"
+  tasks:
+    - name: "Check vars"
+      assert:
+        that:
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+
+    - name: set common facts
+      set_fact:
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        working_dir: "{{ WORKING_DIR }}"
+
+
+    - name: "Solace Cloud Account: Gather Facts as Dict"
+      solace_cloud_account_gather_facts:
+        api_token: "{{ api_token }}"
+        account_name: "{{ account_name }}"
+        return_format: dict
+      register: result
+    - set_fact:
+        sc_data_centers: "{{ result.solace_cloud_account[account_name].data_centers }}"
+    - name: "Save Solace Cloud data centers info"
+      copy:
+        content: "{{ sc_data_centers | to_nice_yaml }}"
+        dest: "{{ WORKING_DIR }}/solace-cloud.data_centers.yml"
+      changed_when: false
