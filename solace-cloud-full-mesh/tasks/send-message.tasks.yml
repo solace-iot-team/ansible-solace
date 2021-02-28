@@ -1,0 +1,31 @@
+---
+- name: "send-messages.tasks: check vars"
+  assert:
+    that:
+      - topic_publish_base is defined
+      - message_payload is defined
+      - message_number is defined
+      - rest_base_url is defined
+      - rest_usr is defined
+      - rest_pwd is defined
+    fail_msg: "one or more variables not defined"
+
+- set_fact:
+    topic: "{{ topic_publish_base }}/id-{{ message_number }}"
+- set_fact:
+    rest_url: "{{ rest_base_url }}/TOPIC/{{ topic }}"
+
+- name: send message
+  uri:
+    url: "{{ rest_url }}"
+    user: "{{ rest_usr }}"
+    password: "{{ rest_pwd }}"
+    method: POST
+    body: "{{ message_payload | to_json }}"
+    force_basic_auth: yes
+    status_code: 200
+    body_format: json
+  register: result
+
+###
+# The End.

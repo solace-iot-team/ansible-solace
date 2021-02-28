@@ -15,7 +15,7 @@ scriptLogName="$testProject.$scriptName"
   fi
 
   # copy inventory file
-  cp .test.solace-cloud.services.inventory.yml ../solace-cloud.services.inventory.yml
+  cp $scriptDir/.test.solace-cloud.services.inventory.yml $scriptDir/../solace-cloud.services.inventory.yml
   code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - copying inventory file - script:$scriptLogName, script:$runScript"; exit 1; fi
 
 ##############################################################################################################################
@@ -36,8 +36,18 @@ scriptLogName="$testProject.$scriptName"
   $runScript
   code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
 
+  runScript="$scriptDir/../run.test.full-mesh-dmr-cluster.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+  runScript="$scriptDir/../run.delete.full-mesh-dmr-cluster.sh"
+  $runScript
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
   runScript="$scriptDir/../run.delete.solace-cloud.services.sh"
   $runScript
   code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+
+
 ###
 # The End.

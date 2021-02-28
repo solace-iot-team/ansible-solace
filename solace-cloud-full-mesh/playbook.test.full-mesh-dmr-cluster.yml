@@ -1,0 +1,124 @@
+
+-
+  name: Run Test of Full Mesh DMR Cluster Playbook
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_queue:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_queue_subscription:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_get_queues:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+  vars:
+    queue_name: ansible_solace_test_mesh
+    topic_subscription: "ansible/solace/test/mesh/>"
+    topic_publish_base: "ansible/solace/test/mesh"
+    num_messages_to_send: 3
+    message_payload:
+      hello: world
+
+  tasks:
+    - name: "check vars"
+      assert:
+        that:
+          - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+          - WORKING_DIR is defined
+        fail_msg: "one or more variables not defined"
+    - name: ensure WORKING_DIR exists
+      file:
+        path: "{{ WORKING_DIR }}"
+        state: directory
+
+    - name: set common facts
+      set_fact:
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        working_dir: "{{ WORKING_DIR }}"
+
+        # emulating action: delete all messages
+    - name: delete queue
+      solace_queue:
+        name: "{{ queue_name }}"
+        state: absent
+
+    - name: create queue
+      solace_queue:
+        name: "{{ queue_name }}"
+        settings:
+          egressEnabled: true
+          ingressEnabled: true
+          permission: consume
+          owner: default
+        state: present
+
+    - name: add queue subscription
+      solace_queue_subscription:
+        queue: "{{ queue_name }}"
+        topic: "{{ topic_subscription }}"
+        state: present
+
+    - name: "call send messages tasks"
+      include_tasks: ./tasks/send-messages.tasks.yml
+
+    # check all queues:
+    # all queues should have num_messages_to_send x num_all_nodes queued up
+    - set_fact:
+        num_expected_messages_in_queue: "{{ ansible_play_batch | length * num_messages_to_send }}"
+
+    - name: get queue stats
+      solace_get_queues:
+        api: monitor
+        query_params:
+          where:
+          - "queueName=={{ queue_name }}"
+          select:
+          - queueName
+          - spooledMsgCount
+      register: result
+    - set_fact:
+        num_actual_messages_in_queue: "{{ result.result_list[0].data.spooledMsgCount }}"
+
+    - name: check actuals & expected match
+      assert:
+        that:
+          - num_expected_messages_in_queue == num_actual_messages_in_queue
+        fail_msg: "test failed: expected and actual numbers do not match"
+
+    - name: delete queue
+      solace_queue:
+        name: "{{ queue_name }}"
+        state: absent
+
+
+###
+# The End.

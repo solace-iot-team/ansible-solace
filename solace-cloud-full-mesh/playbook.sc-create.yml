@@ -27,7 +27,7 @@
     - name: "Create Solace Cloud Service"
       solace_cloud_service:
         api_token: "{{ api_token }}"
-        name: "{{ inventory_hostname }}"
+        name: "{{ service_name }}"
         settings: "{{ settings }}"
         state: present
       register: result
@@ -88,9 +88,9 @@
         that:
           - vpn_connection_details.SMF.enabled
           - vpn_connection_details.REST.enabled
-        fail_msg: "SMF & REST must be enabled on the service {{ inventory_hostname }}"
+        fail_msg: "SMF & REST must be enabled on the service {{ service_name }}"
     - assert:
         that:
           - vpn_connection_details.SMF.secured is defined and vpn_connection_details.SMF.secured.enabled
           - vpn_connection_details.REST.plain is defined and vpn_connection_details.REST.plain.enabled
-        fail_msg: "SMF secured & REST plain must be enabled on the service {{ inventory_hostname }}"
+        fail_msg: "SMF secured & REST plain must be enabled on the service {{ service_name }}"

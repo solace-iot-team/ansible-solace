@@ -15,7 +15,7 @@
     - set_fact:
         api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
         working_dir: "{{ WORKING_DIR }}"
-        sc_service_name: "{{ inventory_hostname }}"
+        sc_service_name: "{{ service_name }}"
     - set_fact:
         sc_service_inventory_file: "{{ working_dir }}/solace-cloud.{{ sc_service_name }}.inventory.yml"
 

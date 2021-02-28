@@ -16,6 +16,16 @@ export SOLACE_CLOUD_API_TOKEN={the api token}
 
 * **WORKING_DIR:** default: `./tmp`
 
+### Get List of Solace Cloud Service Data Centers
+
+Retrieves a list of available data centers in your Solace Cloud subscription.
+
+````bash
+./run.get.solace-cloud.datacenters.sh
+# output:
+cat tmp/solace-cloud.data_centers.yml
+````
+
 ### Inventory File
 
 The inventory file only requires entries for the Solace Cloud services (their names) and their settings.
@@ -81,34 +91,20 @@ all:
           serviceWebTlsListenPort: 0
 ````
 
-### Get List of Solace Cloud Service Data Centers
-
-Retrieves a list of available data centers in your Solace Cloud subscription.
-
-````bash
-./run.get.solace-cloud.datacenters.sh
-# output:
-cat tmp/solace-cloud.data_centers.yml
-````
 
 ### Create Solace Cloud Services
 
-Change service names and settings as per requirements.
 ````bash
-cat solace-cloud.services.inventory.yml
-# change settings, service names, data centers as per requirements
-vi solace-cloud.services.inventory.yml
-````
-
-Create the services:
-````bash
+# input:
+./solace-cloud.services.inventory.yml
+# run:
 ./run.create.solace-cloud.services.sh
 # output:
 $WORKING_DIR/solace-cloud.{service-name}.inventory.yml
 $WORKING_DIR/solace-cloud.{service-name}.info.yml
 ````
 
-### Create the DMR Cluster
+### Create the Full Mesh
 
 Create the full mesh between all services as defined in the inventory.
 
@@ -118,7 +114,17 @@ Create the full mesh between all services as defined in the inventory.
 
 ### Test the Full Mesh
 
-TODO
+````bash
+./run.test.full-mesh-dmr-cluster.sh
+````
+
+### Remove the Full Mesh
+
+Removes the full mesh (deletes the links) between all services as defined in the inventory.
+
+````bash
+./run.delete.full-mesh-dmr-cluster.sh
+````
 
 ### Delete Solace Cloud Services
 
