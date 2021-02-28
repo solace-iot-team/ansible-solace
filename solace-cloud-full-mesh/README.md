@@ -114,6 +114,10 @@ Create the full mesh between all services as defined in the inventory.
 
 ### Test the Full Mesh
 
+- creates a queue in every node with 1 subscription
+- sends 3 messages to every node
+- verifies each queue has received 3 x nodes messages
+
 ````bash
 ./run.test.full-mesh-dmr-cluster.sh
 ````

@@ -1,1 +1,2 @@
-solace-cloud.services.inventory.yml
+**.services.inventory.yml
+!template.**.services.inventory.yml
