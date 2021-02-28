@@ -109,7 +109,12 @@ $WORKING_DIR/solace-cloud.{service-name}.info.yml
 Create the full mesh between all services as defined in the inventory.
 
 ````bash
+# input:
+$WORKING_DIR/solace-cloud.*.inventory.yml
+# run:
 ./run.create.full-mesh-dmr-cluster.sh
+# output:
+none
 ````
 
 ### Test the Full Mesh
@@ -119,7 +124,12 @@ Create the full mesh between all services as defined in the inventory.
 - verifies each queue has received 3 x nodes messages
 
 ````bash
+# input:
+$WORKING_DIR/solace-cloud.*.inventory.yml
+# run:
 ./run.test.full-mesh-dmr-cluster.sh
+# output:
+none
 ````
 
 ### Remove the Full Mesh
@@ -127,13 +137,25 @@ Create the full mesh between all services as defined in the inventory.
 Removes the full mesh (deletes the links) between all services as defined in the inventory.
 
 ````bash
+# input:
+$WORKING_DIR/solace-cloud.*.inventory.yml
+# run:
 ./run.delete.full-mesh-dmr-cluster.sh
+# output:
+none
 ````
 
 ### Delete Solace Cloud Services
 
 ````bash
+# input:
+./solace-cloud.services.inventory.yml
+# run:
 ./run.delete.solace-cloud.services.sh
+# output:
+# removes:
+$WORKING_DIR/solace-cloud.{service-name}.inventory.yml
+$WORKING_DIR/solace-cloud.{service-name}.info.yml
 ````
 
 ---
