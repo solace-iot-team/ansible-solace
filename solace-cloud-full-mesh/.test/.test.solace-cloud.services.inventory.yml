@@ -9,22 +9,22 @@ all:
   hosts:
     ansible_solace_mesh_node_1:
       ansible_connection: local
-      service_name: {globally-unique-service-name-1}
+      service_name: ansible_solace_mesh_xnode_1
       settings:
         datacenterId: "aws-ca-central-1a"
     ansible_solace_mesh_node_2:
       ansible_connection: local
-      service_name: {globally-unique-service-name-2}
+      service_name: ansible_solace_mesh_xnode_2
       settings:
         datacenterId: "aws-eu-central-1a"
     ansible_solace_mesh_node_3:
       ansible_connection: local
-      service_name: {globally-unique-service-name-3}
+      service_name: ansible_solace_mesh_xnode_3
       settings:
         datacenterId: "aws-ap-southeast-1a"
     # ansible_solace_mesh_node_4:
     #   ansible_connection: local
-    #   service_name: {globally-unique-service-name-4}
+    #   service_name: ansible_solace_mesh_xnode_4
     #   settings:
     #     datacenterId: "aws-us-east-1b"
   vars:

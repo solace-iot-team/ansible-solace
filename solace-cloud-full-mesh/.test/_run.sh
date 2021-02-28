@@ -14,6 +14,10 @@ scriptLogName="$testProject.$scriptName"
     rm -rf $LOG_DIR/*
   fi
 
+  # copy inventory file
+  cp .test.solace-cloud.services.inventory.yml ../solace-cloud.services.inventory.yml
+  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - copying inventory file - script:$scriptLogName, script:$runScript"; exit 1; fi
+
 ##############################################################################################################################
 # Run
   export AUTO_RUN=True

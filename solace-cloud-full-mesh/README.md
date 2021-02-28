@@ -21,11 +21,18 @@ export SOLACE_CLOUD_API_TOKEN={the api token}
 The inventory file only requires entries for the Solace Cloud services (their names) and their settings.
 Add or adjust hosts (service names) and their location as required.
 
-If you have existing services, enter their names in the inventory file.
+If you have existing services, enter their names in the inventory file and ensure the settings match.
+
+````bash
+cp template.solace-cloud.services.inventory.yml solace-cloud.services.inventory.yml
+vi solace-cloud.services.inventory.yml
+# enter your globally unique services names
+# save
+````
 
 Note that the ansible playbooks will combine the `settings` of the host with the `common_settings` in the vars to create the final set of settings for each service. The host `settings` override the `common_settings`.
 
-Note the enabled services:
+Note for existing services, the following capabilities must be enabled:
 - SMF for the DMR links
 - REST for automated testing
 
@@ -39,14 +46,17 @@ all:
   hosts:
     ansible_solace_mesh_node_1:
       ansible_connection: local
+      service_name: my-service-name-1
       settings:
         datacenterId: "aws-ca-central-1a"
     ansible_solace_mesh_node_2:
       ansible_connection: local
+      service_name: my-service-name-2
       settings:
         datacenterId: "aws-eu-central-1a"
     ansible_solace_mesh_node_3:
       ansible_connection: local
+      service_name: my-service-name-3
       settings:
         datacenterId: "aws-ap-southeast-1a"
   vars:
