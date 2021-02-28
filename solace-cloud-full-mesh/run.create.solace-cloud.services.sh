@@ -15,6 +15,11 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
   export ANSIBLE_SOLACE_ENABLE_LOGGING=True
   if [ -z "$ANSIBLE_SOLACE_LOG_PATH" ]; then export ANSIBLE_SOLACE_LOG_PATH="$WORKING_DIR/$scriptName.ansible-solace.log"; fi
 
+# clean-up WORKING_DIR
+  rm -rf $WORKING_DIR/solace-cloud.*.inventory.yml
+  rm -rf $WORKING_DIR/solace-cloud.*.info.yml
+  rm -rf $ANSIBLE_SOLACE_LOG_PATH
+
 # create solace cloud services
   ansible-playbook \
     -i "$scriptDir/solace-cloud.services.inventory.yml" \
