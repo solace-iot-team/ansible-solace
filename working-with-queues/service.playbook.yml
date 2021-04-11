@@ -13,6 +13,10 @@
       include_role:
         name: solace.pubsub_plus.solace_broker_service
       vars:
-        service_type: docker_single_node
         project_name: broker_service_single_node
-        generated_inventory_file: "{{ WORKING_DIR }}/broker.inventory.yml"
+        state: present
+
+    - name: "Save generated inventory"
+      copy:
+        content: "{{ solace_broker_service_result.broker_service.inventory | to_nice_yaml(indent=2) }}"
+        dest: "{{ WORKING_DIR }}/broker.inventory.yml"
