@@ -1,7 +1,7 @@
 -
   name: Create Services Playbook
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   any_errors_fatal: true
   collections:
     - solace.pubsub_plus
@@ -71,8 +71,12 @@
       include_role:
         name: solace.pubsub_plus.solace_broker_service
       vars:
-        project_name: central-broker
-        state: present
+        generate:
+          inventory_settings:
+            inventory_hostname: central-broker
+        docker_compose_settings:
+          project_name: central-broker
+          state: present
 
     - name: "Save generated inventory"
       copy:

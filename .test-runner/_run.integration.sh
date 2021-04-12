@@ -18,11 +18,11 @@ if [ -z "$PROJECT_HOME" ]; then echo ">>> XT_ERROR: - $scriptLogName - missing e
 # Settings
 baseLogDir=$LOG_DIR
 testProjects=(
+  "solace-cloud-full-mesh"
   "working-with-queues"
   "working-with-solace-cloud"
   "working-with-users-and-acls"
   "iot-assets-analytics-integration"
-  "solace-cloud-full-mesh"
 )
 
 for testProject in ${testProjects[@]}; do

@@ -56,7 +56,7 @@
         file: "acl-users.vars.yml"
     tasks:
       - name: "Wait until broker service available"
-        solace.pubsub_plus.solace_get_available:
+        solace_get_available:
         register: available_result
       - fail:
           msg: "service not available"

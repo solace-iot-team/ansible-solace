@@ -1,7 +1,7 @@
 -
   name: Service Playbook
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   any_errors_fatal: true
   tasks:
     - name: ensure WORKING_DIR exists
@@ -13,8 +13,9 @@
       include_role:
         name: solace.pubsub_plus.solace_broker_service
       vars:
-        project_name: broker_service_single_node
-        state: present
+        docker_compose_settings:
+          project_name: broker_service_single_node
+          state: present
 
     - name: "Save generated inventory"
       copy:
