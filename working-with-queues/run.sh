@@ -17,8 +17,8 @@ scriptDir=$(cd $(dirname "$0") && pwd);
 
 # create broker service
   ansible-playbook "$scriptDir/service.playbook.yml" --extra-vars "WORKING_DIR=$WORKING_DIR"
-  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code"; exit 1; fi
+  code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code"; exit 1; fi
 
 # configure broker service
   ansible-playbook -i "$WORKING_DIR/broker.inventory.yml" "$scriptDir/configure.playbook.yml"  --extra-vars "AUTO_RUN=$AUTO_RUN"
-  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code"; exit 1; fi
+  code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code"; exit 1; fi

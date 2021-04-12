@@ -1,18 +1,23 @@
 -
-  name: "quickstart teardown"
+  name: "working with queues: teardown"
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   any_errors_fatal: true
   tasks:
     - stat: path="{{ WORKING_DIR }}/broker.inventory.yml"
       register: r
     - assert:
         that: r.stat.exists == True
-    - name: "Broker Service Delete"
+
+    - name: "Local Broker Remove"
       include_role:
         name: solace.pubsub_plus.solace_broker_service
       vars:
-        service_type: docker_single_node
-        project_name: broker_service_single_node
-        generated_inventory_file: "{{ WORKING_DIR }}/broker.inventory.yml"
+        docker_compose_settings:
+          project_name: broker_service_single_node
+          state: absent
+
+    - name: "Remove generated inventory"
+      file:
+        path: "{{ WORKING_DIR }}/broker.inventory.yml"
         state: absent

@@ -1,3 +1,4 @@
 **.services.inventory.yml
 !template.**.services.inventory.yml
+!.test/.test.*
 source.*

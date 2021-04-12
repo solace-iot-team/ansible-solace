@@ -68,7 +68,7 @@ for i in {1..10}; do
       $_brokerUrl \
       -d @- \
       # -v \
-    if [[ $? != 0 ]]; then echo ">>> ERROR ..."; echo; exit 1; fi
+    if [[ $? != 0 ]]; then echo ">>> XT_ERROR ..."; echo; exit 1; fi
   done
 done
 

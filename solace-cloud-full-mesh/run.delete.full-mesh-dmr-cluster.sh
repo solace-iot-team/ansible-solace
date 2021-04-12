@@ -27,7 +27,7 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
     ((counter++))
     inventoryArg+="-i $inventoryFile "
   done
-  if [ "$counter" -lt 2 ]; then echo ">>> ERROR: found $counter inventory file(s). full mesh requires at least 2. ls $inventoryFilesPattern"; exit 1; fi
+  if [ "$counter" -lt 2 ]; then echo ">>> XT_ERROR: found $counter inventory file(s). full mesh requires at least 2. ls $inventoryFilesPattern"; exit 1; fi
 
 # delete full mesh dmr cluster
   ansible-playbook \

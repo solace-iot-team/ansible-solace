@@ -22,14 +22,14 @@ scriptLogName="$testProject.$scriptName"
 
   runScript="$scriptDir/../run.sh"
   $runScript
-  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+  code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
 
 ##############################################################################################################################
 # teardown
   export WORKING_DIR="$scriptDir/../tmp"
   playbook="$scriptDir/teardown.playbook.yml"
   ansible-playbook $playbook --extra-vars "WORKING_DIR=$WORKING_DIR"
-  code=$?; if [[ $code != 0 ]]; then echo ">>> ERROR - $code - script:$scriptLogName, playbook:$playbook"; exit 1; fi
+  code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code - script:$scriptLogName, playbook:$playbook"; exit 1; fi
 
 echo ">>> SUCCESS: $scriptLogName"
 
