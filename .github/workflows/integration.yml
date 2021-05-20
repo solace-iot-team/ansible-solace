@@ -24,7 +24,7 @@ jobs:
       matrix:
         python-version: [ '3.6' ]
         # python-version: [ '3.6', '3.8', '3.9' ]
-        ansible-version: [ 'ansible>=2.10.3' ]
+        ansible-version: [ 'ansible>=2.10.3,<2.11' ]
         # ansible-version: [ 'ansible>=2.9.11,<2.10.0', 'ansible>=2.10.3' ]
         # ansible-version: [ 'ansible>=2.9.11,<2.10.0' ]
 

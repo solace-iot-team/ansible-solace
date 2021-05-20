@@ -11,8 +11,8 @@
     # - bridges always come in pairs and reference each other
     hosts:
       central-broker:
-        remote_host: Ansible-Solace-IoT-Assets-Edge-Broker-1
+        remote_host: as-iot-assets-edge-1
         remote_vpn: as-iot-assets-edge-1
-      Ansible-Solace-IoT-Assets-Edge-Broker-1:
+      as-iot-assets-edge-1:
         remote_host: central-broker
         remote_vpn: default

@@ -7,19 +7,19 @@ all:
   #   - US East (N. Virginia): aws-us-east-1b
   #   - US West (N. Calfornia): aws-us-west-1a
   hosts:
-    ansible_solace_mesh_node_1:
+    as_mesh_node_1:
       ansible_connection: local
-      service_name: ansible_solace_mesh_xnode_1
+      service_name: as_mesh_xnode_1
       settings:
         datacenterId: "aws-ca-central-1a"
-    ansible_solace_mesh_node_2:
+    as_mesh_node_2:
       ansible_connection: local
-      service_name: ansible_solace_mesh_xnode_2
+      service_name: as_mesh_xnode_2
       settings:
         datacenterId: "aws-eu-central-1a"
-    ansible_solace_mesh_node_3:
+    as_mesh_node_3:
       ansible_connection: local
-      service_name: ansible_solace_mesh_xnode_3
+      service_name: as_mesh_xnode_3
       settings:
         datacenterId: "aws-ap-southeast-1a"
     # ansible_solace_mesh_node_4:
@@ -30,8 +30,10 @@ all:
   vars:
     # common settings for creation of Solace Cloud services
     common_settings:
-      serviceTypeId: "enterprise"
-      serviceClassId: "enterprise-250-nano"
+      serviceTypeId: "developer"
+      serviceClassId: "developer"
+      # serviceTypeId: "enterprise"
+      # serviceClassId: "enterprise-250-nano"
       attributes:
         customizedMessagingPorts:
           serviceSmfPlainTextListenPort: 55555
