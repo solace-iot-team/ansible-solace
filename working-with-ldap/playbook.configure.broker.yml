@@ -108,8 +108,8 @@
         aclProfileName: "{{ env.acl_profile.name }}"
       state: present
 
-  - fail:
-      msg: continue here
+  # - fail:
+  #     msg: continue here
 
   - set_fact:
       ldap_profile_settings:
@@ -188,9 +188,15 @@
   - name: save to file
     copy:
       content: "{{ result.facts | to_nice_yaml }}"
-      dest: "./{{ WORKING_DIR }}/{{broker_type}}.vpnClientConnectionDetails.yml"
+      dest: "{{ WORKING_DIR }}/{{broker_type}}.vpnClientConnectionDetails.yml"
     delegate_to: localhost
 
+  - set_fact:
+      plain_mqtt: "{{ result.facts.vpnClientConnectionDetails.MQTT.plain.uri }}"
+    when: broker_type == 'solace_cloud'
+  - set_fact:
+      plain_mqtt: "tcp://localhost:{{ result.facts.vpnClientConnectionDetails.MQTT.plain.uri_components.port }}"
+    when: broker_type != 'solace_cloud'
   - set_fact:
       connect_info:
         devices:
@@ -198,7 +204,7 @@
           passwords: "as configured in LDAP (JumpCloud), as per README: 'device_1_pwd', 'device_2_pwd'"
         solace_cloud:
           plain-mqtt:
-            uri: "{{ result.facts.vpnClientConnectionDetails.MQTT.plain.uri }}"
+            uri: "{{ plain_mqtt }}"
 
   - name: print out
     debug:
