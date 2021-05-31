@@ -1,0 +1,63 @@
+-
+  name: check ldap config
+  hosts: localhost
+  gather_facts: no
+  any_errors_fatal: true
+  pre_tasks:
+  - include_vars:
+      file: "env.vars.yml"
+      name: env
+  tasks:
+  - set_fact:
+      jumpcloud:
+        org_id: "{{ JUMP_CLOUD_ORG_ID }}"
+      working_dir: "{{ WORKING_DIR }}"
+
+  - name: Return all entries within the 'groups' organizational unit.
+    community.general.ldap_search:
+      server_uri: "{{ env.jumpcloud.server_uri }}"
+      bind_dn: "uid={{ env.jumpcloud.service_user_name }},ou=Users,o={{ jumpcloud.org_id }},dc=jumpcloud,dc=com"
+      bind_pw: "{{ env.jumpcloud.service_user_pwd }}"
+      dn: "o={{ jumpcloud.org_id }},dc=jumpcloud,dc=com"
+      scope: subordinate
+      filter: "cn={{ env.jumpcloud.group_name }}"
+    register: group_result
+  - assert:
+      that:
+        - group_result.results is defined
+        - group_result.results[0].member is defined
+  - debug:
+      msg:
+        - "members of '{{ env.jumpcloud.group_name }}':"
+        - "{{ group_result.results[0].member }}"
+
+  - name: Return all device user attributes
+    community.general.ldap_search:
+      server_uri: "{{ env.jumpcloud.server_uri }}"
+      bind_dn: "uid={{ env.jumpcloud.service_user_name }},ou=Users,o={{ jumpcloud.org_id }},dc=jumpcloud,dc=com"
+      bind_pw: "{{ env.jumpcloud.service_user_pwd }}"
+      dn: "o={{ jumpcloud.org_id }},dc=jumpcloud,dc=com"
+      scope: subordinate
+      filter: "cn={{ item.name }}"
+    register: device_result
+    loop: "{{ env.devices }}"
+
+  - debug:
+      msg: "{{device_result}}"
+
+  - debug:
+      msg:
+        - "device: {{ item.results[0].cn }}"
+        - "memberOf: {{ item.results[0].memberOf }}"
+    loop: "{{ device_result.results }}"
+
+  - set_fact:
+      memberOf:
+        memberOf: "{{ device_result.results[0].results[0].memberOf }}"
+
+  - name: save memberOf
+    copy:
+      content: "{{ memberOf | to_nice_yaml }}"
+      dest: "{{ working_dir }}/memberOf.yml"
+###
+# The End.

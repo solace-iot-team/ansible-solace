@@ -1,0 +1,208 @@
+-
+  name: configure broker
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  module_defaults:
+    solace_acl_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_acl_subscribe_topic_exception:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_acl_publish_topic_exception:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_authorization_group:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+    solace_service_authentication_ldap_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_vpn:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+  pre_tasks:
+  - include_vars:
+      file: "env.vars.yml"
+      name: env
+  tasks:
+  - set_fact:
+      jumpcloud:
+        org_id: "{{ JUMP_CLOUD_ORG_ID }}"
+  - name: ensure WORKING_DIR exists
+    file:
+      path: "{{ WORKING_DIR }}"
+      state: directory
+
+  - name: acl profile
+    solace_acl_profile:
+      name: "{{ env.acl_profile.name }}"
+      settings:
+        clientConnectDefaultAction: "allow"
+        publishTopicDefaultAction: "disallow"
+        subscribeTopicDefaultAction: "disallow"
+      state: present
+
+  - name: add pub topic exception
+    solace_acl_publish_topic_exception:
+        acl_profile_name: "{{ env.acl_profile.name }}"
+        name: ldap-test/allowed
+        state: present
+
+  - name: add sub topic exception
+    solace_acl_subscribe_topic_exception:
+        acl_profile_name: "{{ env.acl_profile.name }}"
+        name: ldap-test/*
+        state: present
+
+  - name: create authorization group
+    solace_authorization_group:
+      # same as memberOf
+      name: "cn={{ env.jumpcloud.group_name }},ou=Users,o={{ jumpcloud.org_id }},dc=jumpcloud,dc=com"
+      settings:
+        enabled: true
+        aclProfileName: "{{ env.acl_profile.name }}"
+      state: present
+
+  - fail:
+      msg: continue here
+
+  - set_fact:
+      ldap_profile_settings:
+        group_name: "{{ env.jumpcloud.group_name}}"
+        # Solace Cloud has only 1, called default
+        ldap_profile_name: default
+        admin_dn: "uid={{ env.jumpcloud.service_user_name }},ou=Users,o={{ jumpcloud.org_id }},dc=jumpcloud,dc=com"
+        admin_dn_pwd: "{{ env.jumpcloud.service_user_pwd }}"
+        ldap_server_uri: "{{ env.jumpcloud.server_uri }}"
+        allow_unauthenticated_authentication: no
+        search:
+          base_dn: "ou=Users,o={{ jumpcloud.org_id }},dc=jumpcloud,dc=com"
+          filter: (cn=$CLIENT_USERNAME)
+          follow_continuation_references: true
+          deref: always
+          scope: subtree
+          timeout: 20
+
+  - name: ldap-profile
+    solace_service_authentication_ldap_profile:
+      name: "{{ ldap_profile_settings.ldap_profile_name }}"
+      solace_cloud_settings:
+        adminDn: "{{ ldap_profile_settings.admin_dn }}"
+        adminPassword: "{{ ldap_profile_settings.admin_dn_pwd }}"
+        ldapServerOne: "{{ ldap_profile_settings.ldap_server_uri }}"
+        searchBaseDn: "{{ ldap_profile_settings.search.base_dn }}"
+        searchFilter: "{{ ldap_profile_settings.search.filter }}"
+        searchFollowContinuationReferences: "{{ ldap_profile_settings.search.follow_continuation_references }}"
+        searchDeref: "{{ ldap_profile_settings.search.deref }}"
+        searchScope: "{{ ldap_profile_settings.search.scope }}"
+        searchTimeout: "{{ ldap_profile_settings.search.timeout }}"
+      sempv1_settings:
+        admin:
+          admin-dn: uid=solace_service,ou=Users,o=60aa46c74aa7215077d6e8e7,dc=jumpcloud,dc=com
+          admin-password: "Solace123!"
+        search:
+          base-dn:
+            distinguished-name: ou=Users,o=60aa46c74aa7215077d6e8e7,dc=jumpcloud,dc=com
+          filter:
+            filter: (cn=$CLIENT_USERNAME)
+          timeout:
+            duration: 20
+        ldap-server:
+          ldap-host: ldap://ldap.jumpcloud.com:389
+          server-index: "1"
+      state: present
+
+  - name: enable ldap profile
+    solace_service_authentication_ldap_profile:
+      name: "{{ ldap_profile_settings.ldap_profile_name }}"
+      state: enabled
+
+  - name: update vpn
+    solace_vpn:
+      name: "{{ vpn }}"
+      settings:
+        authenticationBasicType: ldap
+        authenticationBasicProfileName: "{{ ldap_profile_settings.ldap_profile_name }}"
+        authorizationProfileName: "{{ ldap_profile_settings.ldap_profile_name }}"
+        authorizationType: ldap
+        authorizationLdapGroupMembershipAttributeName: memberOf
+      state: present
+
+  - name: gather facts
+    solace_gather_facts:
+
+  - name: get_vpnClientConnectionDetails
+    solace_get_facts:
+      hostvars: "{{ hostvars }}" # always use this setting
+      hostvars_inventory_hostname: "{{ inventory_hostname }}"
+      msg_vpn: "{{ vpn }}"
+      get_functions:
+        - get_vpnClientConnectionDetails
+    register: result
+
+  - name: save to file
+    copy:
+      content: "{{ result.facts | to_nice_yaml }}"
+      dest: "./{{ WORKING_DIR }}/{{broker_type}}.vpnClientConnectionDetails.yml"
+    delegate_to: localhost
+
+  - set_fact:
+      connect_info:
+        devices:
+          usernames: "{{ env.devices|string }}"
+          passwords: "as configured in LDAP (JumpCloud), as per README: 'device_1_pwd', 'device_2_pwd'"
+        solace_cloud:
+          plain-mqtt:
+            uri: "{{ result.facts.vpnClientConnectionDetails.MQTT.plain.uri }}"
+
+  - name: print out
+    debug:
+      msg: "{{ connect_info }}"
+
+###
+# The End.
