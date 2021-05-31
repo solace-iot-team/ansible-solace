@@ -108,9 +108,6 @@
         aclProfileName: "{{ env.acl_profile.name }}"
       state: present
 
-  # - fail:
-  #     msg: continue here
-
   - set_fact:
       ldap_profile_settings:
         group_name: "{{ env.jumpcloud.group_name}}"
