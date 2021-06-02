@@ -1,0 +1,21 @@
+---
+  name: as-ldap
+  msgVpnName: as-ldap
+  datacenterId: "aws-ca-central-1a"
+  serviceTypeId: "developer"
+  serviceClassId: "developer"
+  attributes:
+    customizedMessagingPorts:
+      serviceSmfPlainTextListenPort: 55555
+      serviceSmfCompressedListenPort: 55003
+      serviceSmfTlsListenPort: 55443
+      serviceAmqpPlainTextListenPort: 0
+      serviceAmqpTlsListenPort: 0
+      serviceMqttPlainTextListenPort: 1883
+      serviceMqttTlsListenPort: 8883
+      serviceMqttTlsWebSocketListenPort: 0
+      serviceMqttWebSocketListenPort: 0
+      serviceRestIncomingPlainTextListenPort: 9000
+      serviceRestIncomingTlsListenPort: 0
+      serviceWebPlainTextListenPort: 0
+      serviceWebTlsListenPort: 0

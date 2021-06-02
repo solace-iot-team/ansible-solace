@@ -18,6 +18,7 @@ if [ -z "$PROJECT_HOME" ]; then echo ">>> XT_ERROR: - $scriptLogName - missing e
 # Settings
 baseLogDir=$LOG_DIR
 testProjects=(
+  "working-with-ldap"
   "solace-cloud-full-mesh"
   "working-with-queues"
   "working-with-solace-cloud"

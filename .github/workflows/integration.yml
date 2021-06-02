@@ -6,7 +6,7 @@ on:
 
   schedule:
     # - cron: '1 17 * * THU'
-    - cron: '1 17 * * *'
+    - cron: '1 20 * * *'
   pull_request:
     branches:
       - master
@@ -17,19 +17,13 @@ env:
 
 jobs:
   integration_test:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       # max-parallel: 1
       matrix:
-        python-version: [ '3.6' ]
-        # python-version: [ '3.6', '3.8', '3.9' ]
+        python-version: [ '3.8' ]
         ansible-version: [ 'ansible>=2.10.3,<2.11' ]
-        # ansible-version: [ 'ansible>=2.9.11,<2.10.0', 'ansible>=2.10.3' ]
-        # ansible-version: [ 'ansible>=2.9.11,<2.10.0' ]
-
     steps:
-
       - name: Check Auth
         if: github.event_name == 'workflow_dispatch' && github.actor != 'ricardojosegomezulmke'
         run: |
@@ -45,6 +39,10 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
+      - name: Install open ldap
+        run: |
+          sudo apt-get install -y python-dev libldap2-dev libsasl2-dev libssl-dev
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -59,6 +57,7 @@ jobs:
           pip install requests
           pip install xmltodict
           pip install docker-compose
+          pip install python-ldap
           ansible-galaxy collection install solace.pubsub_plus
 
       - name: Run Tests
@@ -66,6 +65,7 @@ jobs:
           export ANSIBLE_PYTHON_INTERPRETER=$(python -c "import sys; print(sys.executable)")
           export PROJECT_HOME="$GITHUB_WORKSPACE"
           export SOLACE_CLOUD_API_TOKEN="${{ secrets.SOLACE_CLOUD_API_TOKEN_ALL_PERMISSIONS }}"
+          export WORKING_WITH_LDAP_JUMPCLOUD_ORG_ID="${{ secrets.JUMPCLOUD_ORG_ID }}"
           export LOG_DIR="$GITHUB_WORKSPACE/${TEST_RUNNER_LOGS_DIR}"
           ./${TEST_TEST_RUNNER_SCRIPT}
 

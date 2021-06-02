@@ -1,0 +1,44 @@
+---
+- name: gather facts
+  solace_gather_facts:
+
+- name: get_vpnClientConnectionDetails
+  solace_get_facts:
+    hostvars: "{{ hostvars }}" # always use this setting
+    hostvars_inventory_hostname: "{{ inventory_hostname }}"
+    msg_vpn: "{{ vpn }}"
+    get_functions:
+      - get_vpnClientConnectionDetails
+  register: result
+
+- name: save to file
+  copy:
+    content: "{{ result.facts | to_nice_yaml }}"
+    dest: "{{ WORKING_DIR }}/info.{{broker_type}}.vpn-client-connection-details.yml"
+  delegate_to: localhost
+
+- set_fact:
+    plain_mqtt: "{{ result.facts.vpnClientConnectionDetails.MQTT.plain.uri }}"
+    plain_http: "{{ result.facts.vpnClientConnectionDetails.REST.plain.uri }}"
+  when: broker_type == 'solace_cloud'
+- set_fact:
+    plain_mqtt: "tcp://{{ sempv2_host }}:{{ result.facts.vpnClientConnectionDetails.MQTT.plain.uri_components.port }}"
+    plain_http: "http://{{ sempv2_host }}:{{ result.facts.vpnClientConnectionDetails.REST.plain.uri_components.port }}"
+  when: broker_type != 'solace_cloud'
+- set_fact:
+    connect_info:
+      devices:
+        usernames: "{{ env.devices|string }}"
+        passwords: "as configured in LDAP (JumpCloud), as per README: 'device_1_pwd', 'device_2_pwd'"
+      solace_cloud:
+        plain-mqtt:
+          uri: "{{ plain_mqtt }}"
+        plain-http:
+          uri: "{{ plain_http }}"
+
+- name: print out
+  debug:
+    msg: "{{ connect_info }}"
+
+###
+# The End.

@@ -1,0 +1,99 @@
+-
+  name: test broker
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+  pre_tasks:
+  - include_vars:
+      file: "env.vars.yml"
+      name: env
+  tasks:
+  - name: gather facts
+    solace_gather_facts:
+
+  - name: get_vpnClientConnectionDetails
+    solace_get_facts:
+      hostvars: "{{ hostvars }}" # always use this setting
+      hostvars_inventory_hostname: "{{ inventory_hostname }}"
+      msg_vpn: "{{ vpn }}"
+      get_functions:
+        - get_vpnClientConnectionDetails
+    register: result
+
+  - set_fact:
+      plain_http_uri: "{{ result.facts.vpnClientConnectionDetails.REST.plain.uri }}"
+    when: broker_type == 'solace_cloud'
+  - set_fact:
+      plain_http_uri: "http://{{ sempv2_host }}:{{ result.facts.vpnClientConnectionDetails.REST.plain.uri_components.port }}"
+    when: broker_type != 'solace_cloud'
+
+  - set_fact:
+      send_topic: "{{ env.acl_profile.pub_topic_exception }}"
+      send_payload:
+        hello: world
+      rest_url_base: "{{ plain_http_uri }}/TOPIC"
+      rest_usr: "{{ env.devices[0].name }}"
+      rest_pwd: "{{ env.devices[0].pwd }}"
+
+  - name: send message ok
+    uri:
+      url: "{{ rest_url_base }}/{{ send_topic }}"
+      user: "{{ rest_usr }}"
+      password: "{{ rest_pwd }}"
+      method: POST
+      body: "{{ send_payload | to_json }}"
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    register: result
+
+  - set_fact:
+      send_topic: "{{ env.acl_profile.pub_topic_exception }}/not-allowed"
+  - name: send message not allowed topic
+    uri:
+      url: "{{ rest_url_base }}/{{ send_topic }}"
+      user: "{{ rest_usr }}"
+      password: "{{ rest_pwd }}"
+      method: POST
+      body: "{{ send_payload | to_json }}"
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    register: result
+    ignore_errors: yes
+  - assert:
+      that:
+        - result.status == 403
+
+  - set_fact:
+      send_topic: "{{ env.acl_profile.pub_topic_exception }}"
+      rest_pwd: "wrong-password"
+  - name: send message wrong password
+    uri:
+      url: "{{ rest_url_base }}/{{ send_topic }}"
+      user: "{{ rest_usr }}"
+      password: "{{ rest_pwd }}"
+      method: POST
+      body: "{{ send_payload | to_json }}"
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    register: result
+    ignore_errors: yes
+  - assert:
+      that:
+        - result.status == 401
+
+# The End.

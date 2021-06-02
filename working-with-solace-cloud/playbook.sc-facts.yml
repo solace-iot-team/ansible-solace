@@ -33,7 +33,7 @@
       solace_gather_facts:
         solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
       register: result
-      no_log: true
+      # no_log: true
 
     - name: "Get Facts: all client connection details"
       solace_get_facts:

@@ -1,0 +1,71 @@
+-
+  name: Create Solace Cloud Service
+  hosts: localhost
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  pre_tasks:
+  - include_vars:
+      file: "solace-cloud-service.vars.yml"
+      name: sc_service
+  tasks:
+  - name: check vars
+    assert:
+      that:
+        - sc_service is defined
+        - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+        - WORKING_DIR is defined
+      fail_msg: "one or more variables not defined"
+
+  - name: ensure WORKING_DIR exists
+    file:
+      path: "{{ WORKING_DIR }}"
+      state: directory
+
+  - set_fact:
+      broker_type: "solace_cloud"
+
+  - name: "Create Solace Cloud Service"
+    solace_cloud_service:
+      api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+      name: "{{ sc_service.name }}"
+      settings:
+        msgVpnName: "{{ sc_service.msgVpnName}}"
+        datacenterId: "{{ sc_service.datacenterId }}"
+        serviceTypeId: "{{ sc_service.serviceTypeId}}"
+        serviceClassId: "{{ sc_service.serviceClassId }}"
+        attributes: "{{ sc_service.attributes | default(omit) }}"
+      state: present
+    register: result
+
+  - set_fact:
+      sc_service_id: "{{ result.response.serviceId }}"
+      sc_service_info: "{{ result.response }}"
+
+  - name: "Get Solace Cloud Service Inventory"
+    solace_cloud_get_facts:
+      from_dict: "{{ sc_service_info }}"
+      get_formattedHostInventory:
+        host_entry: "{{ sc_service.name }}"
+        api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+        meta:
+          service_name: "{{ sc_service_info.name }}"
+          sc_service_id: "{{ sc_service_info.serviceId }}"
+          datacenterId: "{{ sc_service_info.datacenterId }}"
+          serviceTypeId: "{{ sc_service_info.serviceTypeId}}"
+          serviceClassId: "{{ sc_service_info.serviceClassId }}"
+          serviceClassDisplayedAttributes: "{{ sc_service_info.serviceClassDisplayedAttributes }}"
+    register: result
+
+  - name: "Save Solace Cloud Service Inventory to File"
+    copy:
+      content: "{{ result.facts.formattedHostInventory | to_nice_yaml }}"
+      dest: "{{ WORKING_DIR }}/inventory.{{broker_type}}.yml"
+    changed_when: false
+
+  - name: "Save new Solace Cloud service info"
+    copy:
+      content: "{{ sc_service_info | to_nice_yaml }}"
+      dest: "{{ WORKING_DIR }}/info.{{ broker_type }}.{{ sc_service.name }}.yml"
+    changed_when: false
