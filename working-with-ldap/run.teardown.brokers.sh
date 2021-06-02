@@ -21,21 +21,9 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 # clean-up log file
   rm -f $ANSIBLE_SOLACE_LOG_PATH
 
-# get the list of inventory files, at least 1
-  inventoryFilesPattern="$WORKING_DIR/inventory.*.yml"
-  inventoryFiles=$(ls $inventoryFilesPattern)
-  inventoryArg=""
-  counter=0
-  for inventoryFile in ${inventoryFiles[@]}; do
-    ((counter++))
-    inventoryArg+="-i $inventoryFile "
-  done
-  if [ "$counter" -lt 1 ]; then echo ">>> XT_ERROR: found $counter inventory file(s). at least 1 required. ls $inventoryFilesPattern"; exit 1; fi
-
 # run playbook
   ansible-playbook \
-    $inventoryArg \
-    "$scriptDir/playbook.test.broker.yml" \
+    "$scriptDir/playbook.teardown.brokers.yml" \
     --extra-vars "WORKING_DIR=$WORKING_DIR" \
     --extra-vars "SOLACE_CLOUD_API_TOKEN=$SOLACE_CLOUD_API_TOKEN"
   code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code"; exit 1; fi

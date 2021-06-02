@@ -12,7 +12,7 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
   export ANSIBLE_VERBOSITY=3
 
 # set the working dir
-  WORKING_DIR="$scriptDir/tmp"; mkdir -p $WORKING_DIR
+if [ -z "$WORKING_DIR" ]; then WORKING_DIR="$scriptDir/tmp"; mkdir -p $WORKING_DIR; fi
 
 # run playbook
   ansible-playbook \

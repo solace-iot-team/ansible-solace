@@ -26,9 +26,13 @@ export ANSIBLE_SOLACE_ENABLE_LOGGING=True
 pythonVersion=$(python -c "from platform import python_version; print(python_version())")
 firstLine=$(ansible --version | head -1)
 ansibleVersion=${firstLine//" "/"_"}
+replaceChars=( "[" "]")
+for replaceChar in ${replaceChars[@]}; do
+  ansibleVersion=${ansibleVersion//$replaceChar/"_"}
+done
+
 export LOG_DIR="$LOG_DIR/python_$pythonVersion/$ansibleVersion"
 mkdir -p $LOG_DIR
-
 
 FAILED=0
 # $scriptDir/_run.sh > $LOG_DIR/$scriptLogName.out 2>&1

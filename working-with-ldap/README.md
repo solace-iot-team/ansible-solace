@@ -122,5 +122,10 @@ cat tmp/local.vpnClientConnectionDetails.yml
 **Output:**
 - on screen: all tests passed
 
+## Teardown Brokers
+````bash
+./run.teardown.brokers.sh
+````
+
 ---
 The End.

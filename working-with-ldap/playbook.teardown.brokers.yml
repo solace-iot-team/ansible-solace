@@ -1,0 +1,41 @@
+-
+  name: Teardown brokers
+  hosts: localhost
+  gather_facts: yes
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  pre_tasks:
+  - include_vars:
+      file: "solace-cloud-service.vars.yml"
+      name: sc_service
+  tasks:
+  - name: check vars
+    assert:
+      that:
+        - sc_service is defined
+        - SOLACE_CLOUD_API_TOKEN is defined and SOLACE_CLOUD_API_TOKEN | length > 0
+        - WORKING_DIR is defined
+      fail_msg: "one or more variables not defined"
+
+  # - name: ensure WORKING_DIR exists
+  #   file:
+  #     path: "{{ WORKING_DIR }}"
+  #     state: directory
+  #
+  # - set_fact:
+  #     broker_type: "solace_cloud"
+
+  - name: "Delete Solace Cloud Service"
+    solace_cloud_service:
+      api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
+      name: "{{ sc_service.name }}"
+      state: absent
+
+  - name: "Local Broker Delete"
+    include_role:
+      name: solace.pubsub_plus.solace_broker_service
+    vars:
+      docker_compose_settings:
+        project_name: broker_service_single_node
+        state: absent

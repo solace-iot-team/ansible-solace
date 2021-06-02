@@ -3,7 +3,7 @@ scriptDir=$(cd $(dirname "$0") && pwd);
 scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
 # check env vars
-  if [ -z "$WORKING_WITH_LDAP_SOLACE_CLOUD_API_TOKEN" ]; then echo ">>> XT_ERROR: - $scriptName - missing env var: WORKING_WITH_LDAP_SOLACE_CLOUD_API_TOKEN"; exit 1; fi
+  if [ -z "$SOLACE_CLOUD_API_TOKEN" ]; then echo ">>> XT_ERROR: - $scriptName - missing env var: SOLACE_CLOUD_API_TOKEN"; exit 1; fi
   if [ -z "$WORKING_WITH_LDAP_JUMPCLOUD_ORG_ID" ]; then echo ">>> XT_ERROR: - $scriptName - missing env var: WORKING_WITH_LDAP_JUMPCLOUD_ORG_ID"; exit 1; fi
 
 # set the python interpreter
@@ -13,7 +13,7 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
   export ANSIBLE_VERBOSITY=3
 
 # set the working dir
-  WORKING_DIR="$scriptDir/tmp"; mkdir -p $WORKING_DIR
+  if [ -z "$WORKING_DIR" ]; then WORKING_DIR="$scriptDir/tmp"; mkdir -p $WORKING_DIR; fi
 
 # enable logging
   export ANSIBLE_SOLACE_ENABLE_LOGGING=True
@@ -38,6 +38,6 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
     $inventoryArg \
     "$scriptDir/playbook.configure.broker.yml" \
     --extra-vars "WORKING_DIR=$WORKING_DIR" \
-    --extra-vars "SOLACE_CLOUD_API_TOKEN=$WORKING_WITH_LDAP_SOLACE_CLOUD_API_TOKEN" \
+    --extra-vars "SOLACE_CLOUD_API_TOKEN=$SOLACE_CLOUD_API_TOKEN" \
     --extra-vars "JUMP_CLOUD_ORG_ID=$WORKING_WITH_LDAP_JUMPCLOUD_ORG_ID"
   code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code"; exit 1; fi
