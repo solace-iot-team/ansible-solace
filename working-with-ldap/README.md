@@ -49,7 +49,6 @@ source source.env.sh
 ### Check JumpCloud Configuration
 
 ````bash
-source source.env.sh
 ./run.check.jumpcloud-config.sh
 ````
 
@@ -87,7 +86,7 @@ cat tmp/jumpcloud.ldap.pem
 **Output:**
 - the broker inventory file
 ````bash
-cat tmp/broker.inventory.yml
+cat tmp/inventory.local.yml
 ````
 
 ## Create Solace Cloud Broker Service
@@ -97,7 +96,7 @@ cat tmp/broker.inventory.yml
 **Output:**
 - the service inventory file
 ````bash
-cat tmp/solace-cloud.inventory.yml
+cat tmp/inventory.solace_cloud.yml
 ````
 
 ## Configure the Broker(s)
@@ -107,11 +106,11 @@ cat tmp/solace-cloud.inventory.yml
 ````
 
 **Output:**
-- on screen: plain mqtt connection details for the broker(s)
+- on screen: plain mqtt & http connection details for the broker(s)
 - file: all vpn connection details
 ````bash
-cat tmp/solace_cloud.vpnClientConnectionDetails.yml
-cat tmp/local.vpnClientConnectionDetails.yml
+cat tmp/info.solace_cloud.vpn-client-connection-details.yml
+cat tmp/info.local.vpn-client-connection-details.yml
 ````
 
 ## Run Tests
