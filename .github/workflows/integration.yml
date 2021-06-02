@@ -17,18 +17,13 @@ env:
 
 jobs:
   integration_test:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       # max-parallel: 1
       matrix:
         python-version: [ '3.8' ]
         ansible-version: [ 'ansible>=2.10.3,<2.11' ]
-        # ansible-version: [ 'ansible>=2.9.11,<2.10.0', 'ansible>=2.10.3' ]
-        # ansible-version: [ 'ansible>=2.9.11,<2.10.0' ]
-
     steps:
-
       - name: Check Auth
         if: github.event_name == 'workflow_dispatch' && github.actor != 'ricardojosegomezulmke'
         run: |
