@@ -39,6 +39,10 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
+      - name: Install open ldap
+        run: |
+          sudo apt-get install -y python-dev libldap2-dev libsasl2-dev libssl-dev
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
