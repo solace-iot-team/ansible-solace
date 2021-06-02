@@ -71,6 +71,15 @@ You should see the two devices, similar to this:
 cat tmp/memberOf.yml
 ````
 
+### Get the JumpCloud Certificate
+````bash
+./run.get.jumpcloud-cert.sh
+````
+**Output:**
+````bash
+cat tmp/jumpcloud.ldap.pem
+````
+
 ## Create Local Broker Service
 ````bash
 ./run.create.local-service.sh
@@ -104,6 +113,14 @@ cat tmp/solace-cloud.inventory.yml
 cat tmp/solace_cloud.vpnClientConnectionDetails.yml
 cat tmp/local.vpnClientConnectionDetails.yml
 ````
+
+## Run Tests
+````bash
+./run.test.brokers.sh
+````
+
+**Output:**
+- on screen: all tests passed
 
 ---
 The End.

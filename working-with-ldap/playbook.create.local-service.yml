@@ -9,6 +9,9 @@
         path: "{{ WORKING_DIR }}"
         state: directory
 
+    - set_fact:
+        broker_type: "local"
+
     - name: "Local Broker Setup"
       include_role:
         name: solace.pubsub_plus.solace_broker_service
@@ -20,4 +23,4 @@
     - name: "Save generated inventory"
       copy:
         content: "{{ solace_broker_service_result.broker_service.inventory | to_nice_yaml(indent=2) }}"
-        dest: "{{ WORKING_DIR }}/broker.inventory.yml"
+        dest: "{{ WORKING_DIR }}/inventory.{{broker_type}}.yml"

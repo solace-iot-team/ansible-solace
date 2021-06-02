@@ -4,7 +4,6 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 
 # check env vars
   if [ -z "$WORKING_WITH_LDAP_SOLACE_CLOUD_API_TOKEN" ]; then echo ">>> XT_ERROR: - $scriptName - missing env var: WORKING_WITH_LDAP_SOLACE_CLOUD_API_TOKEN"; exit 1; fi
-  if [ -z "$WORKING_WITH_LDAP_JUMPCLOUD_ORG_ID" ]; then echo ">>> XT_ERROR: - $scriptName - missing env var: WORKING_WITH_LDAP_JUMPCLOUD_ORG_ID"; exit 1; fi
 
 # set the python interpreter
   export ANSIBLE_PYTHON_INTERPRETER=$(python3 -c "import sys; print(sys.executable)")
@@ -36,8 +35,7 @@ scriptName=$(basename $(test -L "$0" && readlink "$0" || echo "$0"));
 # run playbook
   ansible-playbook \
     $inventoryArg \
-    "$scriptDir/playbook.configure.broker.yml" \
+    "$scriptDir/playbook.test.broker.yml" \
     --extra-vars "WORKING_DIR=$WORKING_DIR" \
-    --extra-vars "SOLACE_CLOUD_API_TOKEN=$WORKING_WITH_LDAP_SOLACE_CLOUD_API_TOKEN" \
-    --extra-vars "JUMP_CLOUD_ORG_ID=$WORKING_WITH_LDAP_JUMPCLOUD_ORG_ID"
+    --extra-vars "SOLACE_CLOUD_API_TOKEN=$WORKING_WITH_LDAP_SOLACE_CLOUD_API_TOKEN"
   code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code"; exit 1; fi

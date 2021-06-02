@@ -23,6 +23,9 @@
       path: "{{ WORKING_DIR }}"
       state: directory
 
+  - set_fact:
+      broker_type: "solace_cloud"
+
   - name: "Create Solace Cloud Service"
     solace_cloud_service:
       api_token: "{{ SOLACE_CLOUD_API_TOKEN }}"
@@ -58,11 +61,11 @@
   - name: "Save Solace Cloud Service Inventory to File"
     copy:
       content: "{{ result.facts.formattedHostInventory | to_nice_yaml }}"
-      dest: "{{ WORKING_DIR }}/solace-cloud.inventory.yml"
+      dest: "{{ WORKING_DIR }}/inventory.{{broker_type}}.yml"
     changed_when: false
 
   - name: "Save new Solace Cloud service info"
     copy:
       content: "{{ sc_service_info | to_nice_yaml }}"
-      dest: "{{ WORKING_DIR }}/solace-cloud.{{ sc_service.name }}.info.yml"
+      dest: "{{ WORKING_DIR }}/info.{{ broker_type }}.{{ sc_service.name }}.yml"
     changed_when: false
