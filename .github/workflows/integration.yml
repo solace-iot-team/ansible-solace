@@ -59,6 +59,7 @@ jobs:
           pip install requests
           pip install xmltodict
           pip install docker-compose
+          pip install python-ldap
           ansible-galaxy collection install solace.pubsub_plus
 
       - name: Run Tests

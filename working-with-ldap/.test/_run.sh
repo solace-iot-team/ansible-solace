@@ -19,9 +19,10 @@ scriptLogName="$testProject.$scriptName"
 ##############################################################################################################################
 # Run
 
-  runScript="pip install -r $scriptDir/../requirements.txt"
-  $runScript
-  code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
+  # careful with workflow install -> probably won't work, install in workflow manually
+  # runScript="pip install -r $scriptDir/../requirements.txt"
+  # $runScript
+  # code=$?; if [[ $code != 0 ]]; then echo ">>> XT_ERROR - $code - script:$scriptLogName, script:$runScript"; exit 1; fi
 
   runScript="$scriptDir/../run.check.jumpcloud-config.sh"
   $runScript
