@@ -1,0 +1,29 @@
+all:
+  hosts:
+    api_broker:
+      ansible_connection: local
+      broker_type: local
+      sempv2_host: 127.0.0.1
+      sempv2_is_secure_connection: 'False'
+      sempv2_password: admin
+      sempv2_port: '8080'
+      sempv2_timeout: '60'
+      sempv2_username: admin
+      virtual_router: primary
+      vpn: default
+      semp_reverse_proxy:
+            # use semp_username + semp_password as basic auth
+            use_basic_auth: false
+            # dictionary of query parameters the reverse proxy requires
+            query_params:
+              theApiCode: {code}
+              another_param: {value}
+            # dictionary of headers the reverse proxy requires
+            headers:
+              theApiKeyHeader: {api-key}
+              # set to true to include the module name in the header
+              x-asc-module: true
+              # set to true to include the module operation code in the header
+              x-asc-module-op: true
+            # base path prepended to standard semp api paths
+            semp_base_path: {proxy-semp-base-path}

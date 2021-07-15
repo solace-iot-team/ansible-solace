@@ -1,0 +1,23 @@
+---
+message_vpns:
+- name: api_event_service
+  settings:
+    authenticationBasicEnabled: false
+    maxMsgSpoolUsage: 100
+    serviceMqttPlainTextEnabled: true
+    serviceMqttMaxConnectionCount: 10
+    serviceMqttPlainTextListenPort: 1884
+    serviceAmqpPlainTextListenPort: 5675
+    serviceAmqpPlainTextEnabled: true
+    enabled: true
+- name: api_gateway
+  settings:
+    authenticationBasicEnabled: false
+    maxMsgSpoolUsage: 100
+    serviceMqttMaxConnectionCount: 10
+    serviceMqttPlainTextListenPort: 1885
+    serviceAmqpPlainTextListenPort: 5676
+    serviceMqttPlainTextEnabled: true
+    serviceAmqpPlainTextEnabled: true
+    enabled: true
+  

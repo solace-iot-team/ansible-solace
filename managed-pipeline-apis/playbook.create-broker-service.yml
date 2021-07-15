@@ -1,0 +1,59 @@
+-
+  name: Create Broker Service
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  vars:
+    playbook_name: "create_broker_service"
+    date_time_file: "{{ DATE_TIME }}"
+    tmp_ansible_solace_log_path: "{{ WORKING_DIR }}/tmp/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
+    final_ansible_solace_log_path: "{{ WORKING_DIR }}/ansible-solace-logs/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
+    config_db_dir: "{{ WORKING_DIR }}/config_db"
+    inventory_file: "inventories/api_broker.inventory.yml"
+    actual_db_dir: "{{ WORKING_DIR }}/actual_db"
+  pre_tasks:
+    - name: ensure paths exists
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ tmp_ansible_solace_log_path | dirname }}"
+        - "{{ final_ansible_solace_log_path | dirname }}"
+        - "{{ config_db_dir }}"
+        - "{{ actual_db_dir }}"
+  environment:
+    ANSIBLE_SOLACE_LOG_PATH: "{{ tmp_ansible_solace_log_path }}"
+
+  tasks:
+    - name: "Local Broker Setup"
+      include_role:
+        name: solace.pubsub_plus.solace_broker_service
+      vars:
+        generate:
+          inventory_settings:
+            inventory_hostname: api_broker
+        docker_compose_settings:
+          project_name: api_broker
+          state: present
+
+    - name: "Save generated inventory"
+      copy:
+        content: "{{ solace_broker_service_result.broker_service.inventory | to_nice_yaml(indent=2) }}"
+        dest: "{{ config_db_dir }}/{{ inventory_file }}"
+      delegate_to: localhost
+
+    - name: "Move log file to final"
+      copy:
+        src: "{{ tmp_ansible_solace_log_path }}"
+        dest: "{{ final_ansible_solace_log_path }}"
+      delegate_to: localhost
+    - file:
+        path: "{{ tmp_ansible_solace_log_path }}"
+        state: absent
+      delegate_to: localhost
+
+###
+# The End.

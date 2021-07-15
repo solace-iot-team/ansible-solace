@@ -1,0 +1,89 @@
+-
+  name: Create Broker Service
+  hosts: all
+  connection: local
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  module_defaults:
+    solace_vpn:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    # solace_get_vpns:
+    #   host: "{{ sempv2_host }}"
+    #   port: "{{ sempv2_port }}"
+    #   secure_connection: "{{ sempv2_is_secure_connection }}"
+    #   username: "{{ sempv2_username }}"
+    #   password: "{{ sempv2_password }}"
+    #   timeout: "{{ sempv2_timeout }}"
+# ####################################################################################
+# Standard Begin-of-playbook
+  vars:
+    playbook_name: "create_broker_service"
+    date_time_file: "{{ DATE_TIME }}"
+    tmp_ansible_solace_log_path: "{{ WORKING_DIR }}/tmp/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
+    final_ansible_solace_log_path: "{{ WORKING_DIR }}/ansible-solace-logs/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
+    config_db_dir: "{{ WORKING_DIR }}/config_db"
+    inventory_file: "api_broker.inventory.yml"
+    actual_db_dir: "{{ WORKING_DIR }}/actual_db"
+  pre_tasks:
+    - name: ensure paths exists
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ tmp_ansible_solace_log_path | dirname }}"
+        - "{{ final_ansible_solace_log_path | dirname }}"
+        - "{{ config_db_dir }}"
+        - "{{ actual_db_dir }}/{{ inventory_hostname }}"
+    - include_vars:
+        file: "{{ config_db_dir }}/message-vpns.vars.yml"
+  environment:
+    ANSIBLE_SOLACE_LOG_PATH: "{{ tmp_ansible_solace_log_path }}"
+# Standard Begin-of-playbook
+# ####################################################################################
+  tasks:
+
+    - name: create message vpns
+      solace_vpn:
+        name: "{{ item.name }}"
+        settings: "{{ item.settings }}"
+        state: present
+      loop: "{{ message_vpns }}"
+
+    - name: get vpn details
+      solace_get_vpns:
+        query_params:
+          where:
+            - "msgVpnName==api_*"
+      register: result
+
+    - name: save vpn details to actual db
+      copy:
+        content: "{{ result.result_list | to_nice_yaml(indent=2) }}"
+        dest: "{{ actual_db_dir }}/{{ inventory_hostname }}/api_vpn_details.yml"
+      delegate_to: localhost
+
+
+# ####################################################################################
+# Standard End-of-playbook
+    - name: "Move log file to final"
+      copy:
+        src: "{{ tmp_ansible_solace_log_path }}"
+        dest: "{{ final_ansible_solace_log_path }}"
+      delegate_to: localhost
+    - file:
+        path: "{{ tmp_ansible_solace_log_path }}"
+        state: absent
+      delegate_to: localhost
+# Standard End-of-playbook
+# ####################################################################################
+
+###
+# The End.
