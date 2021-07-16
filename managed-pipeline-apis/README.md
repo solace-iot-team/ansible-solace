@@ -2,7 +2,7 @@
 
 > :warning: **UNDER CONSTRUCTION**
 
-Manage API Event Services and APPs similar to the concept of Async API Management.
+Manage API Event Services and APPs follwing the concepts of Async API Management.
 
 See also [Overview of the Project](./ProjectOverview.md).
 
