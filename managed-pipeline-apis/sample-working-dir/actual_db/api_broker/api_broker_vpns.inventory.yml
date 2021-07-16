@@ -1,0 +1,24 @@
+all:
+  hosts:
+    api_broker_api_event_service:
+      ansible_connection: local
+      broker_type: local
+      sempv2_host: 127.0.0.1
+      sempv2_is_secure_connection: false
+      sempv2_password: admin
+      sempv2_port: 8080
+      sempv2_timeout: 60
+      sempv2_username: admin
+      virtual_router: primary
+      vpn: api_event_service
+    api_broker_api_gateway:
+      ansible_connection: local
+      broker_type: local
+      sempv2_host: 127.0.0.1
+      sempv2_is_secure_connection: false
+      sempv2_password: admin
+      sempv2_port: 8080
+      sempv2_timeout: 60
+      sempv2_username: admin
+      virtual_router: primary
+      vpn: api_gateway

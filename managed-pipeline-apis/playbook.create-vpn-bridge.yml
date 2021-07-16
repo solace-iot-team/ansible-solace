@@ -1,0 +1,260 @@
+-
+  name: Create Vpn Bridge
+  hosts: all
+  connection: local
+  gather_facts: no
+  any_errors_fatal: true
+  collections:
+    - solace.pubsub_plus
+  module_defaults:
+    solace_gather_facts:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      solace_cloud_api_token: "{{ SOLACE_CLOUD_API_TOKEN if broker_type=='solace_cloud' else omit }}"
+      solace_cloud_service_id: "{{ solace_cloud_service_id | default(omit) }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    solace_client_profile:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    solace_client_username:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    solace_queue:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    solace_bridge:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    solace_bridge_remote_vpn:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    solace_get_bridges:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+    solace_get_bridge_remote_vpns:
+      host: "{{ sempv2_host }}"
+      port: "{{ sempv2_port }}"
+      secure_connection: "{{ sempv2_is_secure_connection }}"
+      username: "{{ sempv2_username }}"
+      password: "{{ sempv2_password }}"
+      timeout: "{{ sempv2_timeout }}"
+      msg_vpn: "{{ vpn }}"
+      reverse_proxy: "{{ semp_reverse_proxy | default(omit) }}"
+# ####################################################################################
+# Standard Begin-of-playbook
+  vars:
+    playbook_name: "create_vpn_bridge"
+    date_time_file: "{{ DATE_TIME }}"
+    tmp_ansible_solace_log_path: "{{ WORKING_DIR }}/tmp/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
+    final_ansible_solace_log_path: "{{ WORKING_DIR }}/ansible-solace-logs/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
+    config_db_dir: "{{ WORKING_DIR }}/config_db"
+    inventory_file: "api_broker.inventory.yml"
+    actual_db_dir: "{{ WORKING_DIR }}/actual_db"
+  pre_tasks:
+    - name: ensure paths exists
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ tmp_ansible_solace_log_path | dirname }}"
+        - "{{ final_ansible_solace_log_path | dirname }}"
+        - "{{ config_db_dir }}"
+        - "{{ actual_db_dir }}/{{ inventory_hostname }}"
+  environment:
+    ANSIBLE_SOLACE_LOG_PATH: "{{ tmp_ansible_solace_log_path }}"
+# Standard Begin-of-playbook
+# ####################################################################################
+  tasks:
+    - include_vars:
+        file: "{{ config_db_dir }}/vpn-bridge.vars.yml"
+
+    - name: gather broker facts
+      solace_gather_facts:
+
+    - set_fact:
+        remote_inventory_hostname: "{{ bridge[inventory_hostname].remote_host }}"
+        remote_vpn: "{{ bridge[inventory_hostname].remote_vpn }}"
+
+    - name: get_bridge_remoteMsgVpnLocations
+      solace_get_facts:
+        hostvars: "{{ hostvars }}"
+        hostvars_inventory_hostname: "{{ remote_inventory_hostname }}"
+        msg_vpn: "{{ remote_vpn }}"
+        get_functions:
+          - get_vpnBridgeRemoteMsgVpnLocations
+          - get_vpnClientConnectionDetails
+      register: result
+
+    - debug:
+        msg: "{{ result.facts.vpnClientConnectionDetails }}"
+
+    - set_fact:
+        # this will only return v:{virtual_router} for local brokers
+        # remote_msg_vpn_location: "{{ result.facts.vpnBridgeRemoteMsgVpnLocations.plain }}"
+        # instead, we need: {host}:{SMF-port}, e.g. 127.0.0.1:55555
+        remote_msg_vpn_location: "{{ sempv2_host }}:{{ result.facts.vpnClientConnectionDetails.SMF.plain.uri_components.port }}"
+
+    - name: ensure client username for bridge is shutdown
+      solace_client_username:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: false
+        state: present
+
+    - name: create client profile for bridge
+      solace_client_profile:
+        name: "{{ bridge.name }}"
+        settings:
+          allowBridgeConnectionsEnabled: true
+          allowGuaranteedMsgReceiveEnabled: true
+          allowGuaranteedMsgSendEnabled: true
+        state: present
+
+    - name: create client username for bridge
+      solace_client_username:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: true
+          password: "{{ bridge.name }}"
+          clientProfileName: "{{ bridge.name }}"
+        state: present
+
+    - name: create queue for bridge
+      solace_queue:
+        name: "{{ bridge.name }}"
+        settings:
+          owner: "{{ bridge.name }}"
+          permission: consume
+          egressEnabled: true
+          ingressEnabled: true
+        state: present
+
+    - name: create bridge
+      solace_bridge:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: false
+          remoteAuthenticationBasicClientUsername: "{{ bridge.name }}"
+          remoteAuthenticationBasicPassword: "{{ bridge.name }}"
+        state: present
+
+    - name: create remote bridge vpn
+      solace_bridge_remote_vpn:
+        name: "{{ remote_vpn }}"
+        bridge_name: "{{ bridge.name }}"
+        bridge_virtual_router: auto
+        remote_vpn_location: "{{ remote_msg_vpn_location }}"
+        settings:
+          enabled: true
+          tlsEnabled: false
+          compressedDataEnabled: false
+          queueBinding: "{{ bridge.name }}"
+        state: present
+
+    - name: enable bridge
+      solace_bridge:
+        name: "{{ bridge.name }}"
+        settings:
+          enabled: true
+        state: present
+
+    - name: wait and check if bridge is up
+      solace_get_bridges:
+        api: monitor
+        query_params:
+          where:
+            - "bridgeName=={{ bridge.name }}"
+          select:
+            - inboundState
+            - inboundFailureReason
+            - outboundState
+      register: bridge_list
+      until:
+        - bridge_list.result_list[0].data.inboundState == 'ready-in-sync'
+        - bridge_list.result_list[0].data.outboundState == 'ready'
+      retries: 5
+      delay: 5
+
+    - name: get bridge config
+      solace_get_bridges:
+        query_params:
+          where:
+            - "bridgeName=={{ bridge.name }}"
+      register: result
+
+    - name: save bridge details to actual db
+      copy:
+        content: "{{ result.result_list[0] | to_nice_yaml(indent=2) }}"
+        dest: "{{ actual_db_dir }}/{{ inventory_hostname }}/api_vpn_bridge_details.yml"
+      delegate_to: localhost
+
+    - name: get bridge remote vpn config
+      solace_get_bridge_remote_vpns:
+        bridge_name: "{{ bridge.name }}"
+        query_params:
+          where:
+            - "remoteMsgVpnName=={{ remote_vpn }}"
+      register: result
+
+    - name: save bridge remote vpn details to actual db
+      copy:
+        content: "{{ result.result_list[0] | to_nice_yaml(indent=2) }}"
+        dest: "{{ actual_db_dir }}/{{ inventory_hostname }}/api_vpn_bridge_remote_vpn_details.yml"
+      delegate_to: localhost
+
+# ####################################################################################
+# Standard End-of-playbook
+    - name: "Move log file to final"
+      copy:
+        src: "{{ tmp_ansible_solace_log_path }}"
+        dest: "{{ final_ansible_solace_log_path }}"
+      delegate_to: localhost
+    - file:
+        path: "{{ tmp_ansible_solace_log_path }}"
+        state: absent
+      delegate_to: localhost
+# Standard End-of-playbook
+# ####################################################################################
+
+###
+# The End.

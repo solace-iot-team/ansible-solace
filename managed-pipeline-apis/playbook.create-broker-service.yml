@@ -6,13 +6,14 @@
   any_errors_fatal: true
   collections:
     - solace.pubsub_plus
+# ####################################################################################
+# Standard Begin-of-playbook
   vars:
     playbook_name: "create_broker_service"
     date_time_file: "{{ DATE_TIME }}"
     tmp_ansible_solace_log_path: "{{ WORKING_DIR }}/tmp/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
     final_ansible_solace_log_path: "{{ WORKING_DIR }}/ansible-solace-logs/{{ inventory_hostname }}.{{ date_time_file }}.{{ playbook_name }}.ansible-solace.log"
     config_db_dir: "{{ WORKING_DIR }}/config_db"
-    inventory_file: "inventories/api_broker.inventory.yml"
     actual_db_dir: "{{ WORKING_DIR }}/actual_db"
   pre_tasks:
     - name: ensure paths exists
@@ -26,25 +27,109 @@
         - "{{ actual_db_dir }}"
   environment:
     ANSIBLE_SOLACE_LOG_PATH: "{{ tmp_ansible_solace_log_path }}"
-
+# Standard Begin-of-playbook
+# ####################################################################################
   tasks:
+    - include_vars:
+        file: "{{ config_db_dir }}/broker-service.vars.yml"
+
     - name: "Local Broker Setup"
       include_role:
         name: solace.pubsub_plus.solace_broker_service
       vars:
         generate:
           inventory_settings:
-            inventory_hostname: api_broker
+            inventory_hostname: "{{ broker_service.inventory_hostname }}"
+            ansible_connection: local
+            broker_type: local
+            sempv2_host: 127.0.0.1
+            sempv2_is_secure_connection: false
+            sempv2_username: "{{ broker_service.username_admin_globalaccesslevel }}"
+            sempv2_password: "{{ broker_service.username_admin_password }}"
+            sempv2_port: "{{ broker_service.sempv2_port }}"
+            sempv2_timeout: 60
+            virtual_router: primary
+            vpn: default
         docker_compose_settings:
           project_name: api_broker
+          services:
+            - primary
+          definition:
+            version: '3.3'
+            services:
+              primary:
+                container_name: PubSubStandard_singleNode
+                image: "{{ broker_service.docker_image }}"
+                shm_size: 1g
+                ulimits:
+                  core: 2
+                  nofile:
+                    soft: 2448
+                    hard: 38048
+                deploy:
+                  restart_policy:
+                    condition: on-failure
+                    max_attempts: 3
+                ports:
+                #Port Mappings:  Ports are mapped straight through from host to
+                #container.  This may result in port collisions on commonly used
+                #ports that will cause failure of the container to start.
+                  #Web transport
+                  - '80:80'
+                  #Web transport over TLS
+                  - '443:443'
+                  #MQTT Default VPN
+                  - '1883:1883'
+                  - '1884:1884'
+                  - '1885:1885'
+                  #AMQP Default VPN over TLS
+                  - '5671:5671'
+                  #AMQP Default VPN
+                  - '5672:5672'
+                  - '5675:5675'
+                  - '5676:5676'
+                  #MQTT Default VPN over WebSockets
+                  - '8000:8000'
+                  #MQTT Default VPN over WebSockets / TLS
+                  - '8443:8443'
+                  #MQTT Default VPN over TLS
+                  - '8883:8883'
+                  #SEMP over TLS
+                  # - "1943:1943"
+                  #SEMP / PubSub+ Manager
+                  - "{{ broker_service.sempv2_port }}:8080"
+                  #REST Default VPN
+                  - '9000:9000'
+                  #REST Default VPN over TLS
+                  - '9443:9443'
+                  #SMF
+                  - '55555:55555'
+                  #SMF Compressed
+                  - '55003:55003'
+                  #SMF over TLS
+                  - '55443:55443'
+                environment:
+                  - "username_admin_globalaccesslevel={{ broker_service.username_admin_globalaccesslevel }}"
+                  - "username_admin_password={{ broker_service.username_admin_password }}"
+                  - system_scaling_maxconnectioncount=100
+          recreate: always
+          restarted: yes
+          debug: yes
           state: present
 
     - name: "Save generated inventory"
-      copy:
+      set_fact:
+        generated_inventory_file: "{{ actual_db_dir }}/{{ broker_service.inventory_hostname }}/{{ broker_service.inventory_hostname }}.inventory.yml"
+    - file:
+        path: "{{ generated_inventory_file | dirname }}"
+        state: directory
+    - copy:
         content: "{{ solace_broker_service_result.broker_service.inventory | to_nice_yaml(indent=2) }}"
-        dest: "{{ config_db_dir }}/{{ inventory_file }}"
+        dest: "{{ generated_inventory_file }}"
       delegate_to: localhost
 
+# ####################################################################################
+# Standard End-of-playbook
     - name: "Move log file to final"
       copy:
         src: "{{ tmp_ansible_solace_log_path }}"
@@ -54,6 +139,8 @@
         path: "{{ tmp_ansible_solace_log_path }}"
         state: absent
       delegate_to: localhost
+# Standard End-of-playbook
+# ####################################################################################
 
 ###
 # The End.

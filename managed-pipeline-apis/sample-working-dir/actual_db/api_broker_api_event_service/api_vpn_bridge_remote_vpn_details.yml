@@ -1,0 +1,15 @@
+data:
+  bridgeName: api_bridge
+  bridgeVirtualRouter: auto
+  clientUsername: ''
+  compressedDataEnabled: false
+  connectOrder: 4
+  egressFlowWindowSize: 255
+  enabled: true
+  msgVpnName: api_event_service
+  queueBinding: api_bridge
+  remoteMsgVpnInterface: ''
+  remoteMsgVpnLocation: 127.0.0.1:55555
+  remoteMsgVpnName: api_gateway
+  tlsEnabled: false
+  unidirectionalClientProfile: '#client-profile'

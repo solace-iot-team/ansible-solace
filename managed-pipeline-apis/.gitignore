@@ -2,3 +2,4 @@
 !template.**.services.inventory.yml
 !.test/.test.*
 source.*
+delete.*

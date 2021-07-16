@@ -1,0 +1,7 @@
+---
+broker_service:
+  inventory_hostname: api_broker
+  docker_image: solace/solace-pubsub-standard:latest
+  username_admin_globalaccesslevel: admin
+  username_admin_password: admin
+  sempv2_port: 8080

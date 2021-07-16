@@ -1,9 +1,9 @@
 - data:
     alias: ''
-    authenticationBasicEnabled: false
-    authenticationBasicProfileName: default
+    authenticationBasicEnabled: true
+    authenticationBasicProfileName: ''
     authenticationBasicRadiusDomain: ''
-    authenticationBasicType: radius
+    authenticationBasicType: internal
     authenticationClientCertAllowApiProvidedUsernameEnabled: false
     authenticationClientCertEnabled: false
     authenticationClientCertMaxChainDepth: 3
@@ -146,10 +146,10 @@
     tlsAllowDowngradeToPlainTextEnabled: false
 - data:
     alias: ''
-    authenticationBasicEnabled: false
-    authenticationBasicProfileName: default
+    authenticationBasicEnabled: true
+    authenticationBasicProfileName: ''
     authenticationBasicRadiusDomain: ''
-    authenticationBasicType: radius
+    authenticationBasicType: internal
     authenticationClientCertAllowApiProvidedUsernameEnabled: false
     authenticationClientCertEnabled: false
     authenticationClientCertMaxChainDepth: 3

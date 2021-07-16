@@ -1,0 +1,17 @@
+---
+bridge:
+  name: api_bridge
+  # Notes:
+  # - the hosts and remote_hosts
+  #   must be the same name as in the main inventory
+  # - bridges always come in pairs and reference each other
+  api_broker_api_event_service:
+    remote_host: api_broker_api_gateway
+    remote_vpn: api_gateway
+  api_broker_api_gateway:
+    remote_host: api_broker_api_event_service
+    remote_vpn: api_event_service
+
+
+###
+# The End.

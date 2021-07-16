@@ -1,0 +1,16 @@
+
+all:
+ hosts:
+ {% for vpn in message_vpns.vpn_list %}
+   api_broker_{{vpn.name}}:
+     ansible_connection: local
+     broker_type: {{broker_type}}
+     sempv2_host: {{sempv2_host}}
+     sempv2_is_secure_connection: {{sempv2_is_secure_connection}}
+     sempv2_password: {{sempv2_password}}
+     sempv2_port: {{sempv2_port}}
+     sempv2_timeout: {{sempv2_timeout}}
+     sempv2_username: {{sempv2_username}}
+     virtual_router: {{virtual_router}}
+     vpn: {{vpn.name}}
+ {% endfor %}

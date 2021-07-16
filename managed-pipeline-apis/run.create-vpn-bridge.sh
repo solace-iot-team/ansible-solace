@@ -18,11 +18,12 @@ scriptDir=$(cd $(dirname "$0") && pwd);
   export DATE_TIME=$(date '+%Y-%m-%d-%H-%M-%S')
 
 # set the inventory file
-  inventoryFile="$WORKING_DIR/actual_db/api_broker/api_broker.inventory.yml"
+  inventoryFile="$WORKING_DIR/actual_db/api_broker/api_broker_vpns.inventory.yml"
 
 # run playbook
   ansible-playbook \
+    --forks 1 \
     -i $inventoryFile \
-    "$scriptDir/playbook.create-message-vpns.yml" \
+    "$scriptDir/playbook.create-vpn-bridge.yml" \
     --extra-vars "WORKING_DIR=$WORKING_DIR" \
     --extra-vars "DATE_TIME=$DATE_TIME"
